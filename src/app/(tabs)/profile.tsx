@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { ZenButton } from '../../components/ui/ZenButton';
 import { BentoCard } from '../../components/ui/BentoCard';
-import { apiClient } from '../../api/client';
-import { LogOut, Award, User as UserIcon } from 'lucide-react-native';
+import { apiClient, getImageUrl } from '../../api/client';
+import { LogOut, Award, User as UserIcon, Settings } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -66,8 +66,15 @@ export default function ProfileScreen() {
       </View>
 
       <BentoCard className="items-center mb-6 py-8">
-        <View className="w-24 h-24 bg-zen-accent/20 rounded-full items-center justify-center mb-4">
-          <UserIcon color="#10b981" size={48} />
+        <View className="w-24 h-24 bg-zen-accent/20 rounded-full items-center justify-center mb-4 overflow-hidden border border-gray-100 dark:border-gray-800">
+          {user?.avatar_url ? (
+            <Image 
+              source={{ uri: getImageUrl(user.avatar_url) }} 
+              className="w-full h-full" 
+            />
+          ) : (
+            <UserIcon color="#10b981" size={48} />
+          )}
         </View>
         <Text className="font-display text-xl font-bold text-gray-900 dark:text-white">{user?.full_name}</Text>
         <Text className="font-sans text-gray-500 mb-4">{user?.email}</Text>
@@ -81,6 +88,17 @@ export default function ProfileScreen() {
       </BentoCard>
 
       <TouchableOpacity 
+        className="w-full mb-4" 
+        activeOpacity={0.9}
+        onPress={() => router.push('/profile/edit' as any)}
+      >
+        <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl flex-row justify-between items-center">
+          <Text className="font-display font-bold text-gray-800 dark:text-gray-100">Edit Profil Saya</Text>
+          <Settings color="#10b981" size={18} />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
         className="w-full mb-6" 
         activeOpacity={0.9}
         onPress={() => router.push('/my-reports' as any)}
@@ -88,6 +106,17 @@ export default function ProfileScreen() {
         <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl flex-row justify-between items-center">
           <Text className="font-display font-bold text-gray-800 dark:text-gray-100">Riwayat Laporan Saya</Text>
           <Text className="font-sans font-bold text-zen-accent">→</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        className="w-full mb-6" 
+        activeOpacity={0.9}
+        onPress={handleLogout}
+      >
+        <View className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl flex-row justify-between items-center">
+          <Text className="font-display font-bold text-red-600 dark:text-red-400">Keluar dari Akun</Text>
+          <LogOut color="#ef4444" size={18} />
         </View>
       </TouchableOpacity>
 
