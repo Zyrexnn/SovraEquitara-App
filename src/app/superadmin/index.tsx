@@ -9,7 +9,8 @@ import {
   Alert,
   Animated,
   TextInput,
-  Image
+  Image,
+  Linking
 } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
@@ -34,7 +35,10 @@ import {
   Download,
   Lock,
   Activity,
-  Search
+  Search,
+  Bookmark,
+  Megaphone,
+  MessageSquare
 } from 'lucide-react-native';
 
 // Indikator Titik Hijau Berkedip/Pulsing Native
@@ -77,14 +81,17 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
   const iconColor = isDark ? '#f3f4f6' : '#374151';
   
   const [reports, setReports] = useState<any[]>([]);
+  const [savedReports, setSavedReports] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'ALL' | 'SAVED'>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'RECENT' | 'VOTES' | 'COMMENTS'>('RECENT');
+  
   const [stats, setStats] = useState({ total: 0, pending: 0, verified: 0, resolved: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeString, setTimeString] = useState('');
-
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
 
   // 1. Dynamic Local Time Clock (Web-Parity)
   useEffect(() => {
@@ -106,9 +113,13 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
   // 2. Fetch system stats & reports list
   const fetchStatsAndReports = async () => {
     try {
-      const res = await apiClient.get('/admin/reports');
-      if (res.data?.data) {
-        const reportsData = res.data.data;
+      const [resReports, resSaved] = await Promise.all([
+        apiClient.get('/admin/reports'),
+        apiClient.get('/admin/saved-reports')
+      ]);
+      
+      if (resReports.data?.data) {
+        const reportsData = resReports.data.data;
         setReports(reportsData);
         setStats({
           total: reportsData.length,
@@ -116,6 +127,9 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
           verified: reportsData.filter((r: any) => r.status === 'VALID').length,
           resolved: reportsData.filter((r: any) => r.status === 'RESOLVED').length,
         });
+      }
+      if (resSaved.data?.data) {
+        setSavedReports(resSaved.data.data);
       }
     } catch (e) {
       console.log('Failed to fetch stats for superadmin', e);
@@ -135,22 +149,31 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
   };
 
   // 3. Filtering & Sorting Logic
-  const filteredReports = reports.filter(r => {
+  const currentReportsList = activeTab === 'ALL' ? reports : savedReports;
+  const filteredReports = currentReportsList.filter(r => {
     const matchesSearch = searchQuery
       ? r.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.location_detail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        (r.profile?.full_name || r.user?.full_name)?.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
       
     const matchesStatus = statusFilter === 'ALL' ? true : r.status === statusFilter;
+    const matchesCategory = categoryFilter === null ? true : r.category_id === categoryFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  // Sort: show pending and newer ones first
+  // Sort: pending review on top, then order by selected sorting criteria
   const sortedReports = [...filteredReports].sort((a, b) => {
     if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
     if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+    
+    if (sortBy === 'VOTES') {
+      return (b.vote_count || 0) - (a.vote_count || 0);
+    }
+    if (sortBy === 'COMMENTS') {
+      return (b.comment_count || 0) - (a.comment_count || 0);
+    }
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
@@ -163,15 +186,37 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
         { text: "Batal", style: "cancel" },
         { 
           text: "Mulai Backup", 
-          onPress: () => {
-            // Simulate processing then success
-            setTimeout(() => {
-              const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-              Alert.alert(
-                "Backup Berhasil",
-                `Cadangan PostgreSQL (sovra_db_backup_${new Date().toISOString().split('T')[0]}.sql) berhasil disimpan aman di server lokal pada pukul ${now} WIB.`
-              );
-            }, 500);
+          onPress: async () => {
+            try {
+              const res = await apiClient.post('/superadmin/database/backup');
+              
+              if (res.data && res.data.download_url) {
+                const hostRoot = apiClient.defaults.baseURL ? apiClient.defaults.baseURL.replace('/api', '') : 'http://localhost:3000';
+                const fullDownloadUrl = hostRoot + res.data.download_url;
+                
+                Alert.alert(
+                  "Backup Berhasil",
+                  `Cadangan PostgreSQL (${res.data.filename}) berhasil disimpan aman di server lokal.\n\nUnduh file cadangan sekarang?`,
+                  [
+                    { text: "Nanti Saja" },
+                    { 
+                      text: "Unduh Sekarang", 
+                      onPress: () => {
+                        Linking.openURL(fullDownloadUrl).catch(err => {
+                          console.error("Gagal membuka link unduhan", err);
+                          Alert.alert("Eror Unduhan", "Tidak dapat membuka peramban untuk mengunduh file.");
+                        });
+                      } 
+                    }
+                  ]
+                );
+              } else {
+                throw new Error("Respon server tidak valid");
+              }
+            } catch (err: any) {
+              const errMsg = err.response?.data?.error || err.message || "Koneksi terputus";
+              Alert.alert("Backup Gagal", "Gagal memproses cadangan: " + errMsg);
+            }
           }
         }
       ]
@@ -416,9 +461,72 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
               </TouchableOpacity>
             </View>
 
+            <View className="flex-row gap-4 mb-6">
+              {/* Kirim Pengumuman (Broadcast) */}
+              <TouchableOpacity 
+                activeOpacity={0.9} 
+                onPress={() => router.push('/admin/broadcast' as any)}
+                className="flex-1"
+              >
+                <BentoCard className="p-4 h-[124px] justify-between shadow-none rounded-[24px]">
+                  <View className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl self-start">
+                    <Megaphone color="#a855f7" size={18} />
+                  </View>
+                  <View>
+                    <Text className="font-display font-bold text-gray-900 dark:text-white text-xs">Kirim Pengumuman</Text>
+                    <Text className="font-sans text-gray-400 dark:text-gray-500 text-[8px] mt-0.5 leading-snug">Broadcast pengumuman kota</Text>
+                  </View>
+                </BentoCard>
+              </TouchableOpacity>
+
+              {/* Kotak Bantuan (Helpdesk) */}
+              <TouchableOpacity 
+                activeOpacity={0.9} 
+                onPress={() => router.push('/admin/helpdesk' as any)}
+                className="flex-1"
+              >
+                <BentoCard className="p-4 h-[124px] justify-between shadow-none rounded-[24px]">
+                  <View className="p-2.5 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-xl self-start">
+                    <MessageSquare color="#6366f1" size={18} />
+                  </View>
+                  <View>
+                    <Text className="font-display font-bold text-gray-900 dark:text-white text-xs">Kotak Bantuan</Text>
+                    <Text className="font-sans text-gray-400 dark:text-gray-500 text-[8px] mt-0.5 leading-snug">Chat Inbox Warga & AI Log</Text>
+                  </View>
+                </BentoCard>
+              </TouchableOpacity>
+            </View>
+
             {/* Search & Filter Section */}
+            {/* Tab Toggle: Semua Laporan vs Laporan Tersimpan */}
+            <View className="flex-row bg-white dark:bg-zen-cardDark p-1.5 rounded-2xl border border-zen-border dark:border-zen-borderDark mb-4 shadow-sm">
+              <TouchableOpacity
+                onPress={() => setActiveTab('ALL')}
+                activeOpacity={0.8}
+                className={`flex-1 py-3 rounded-xl items-center justify-center ${
+                  activeTab === 'ALL' ? 'bg-indigo-500' : 'bg-transparent'
+                }`}
+              >
+                <Text className={`font-display font-bold text-xs ${activeTab === 'ALL' ? 'text-white' : 'text-gray-500'}`}>
+                  Semua Aduan Warga
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('SAVED')}
+                activeOpacity={0.8}
+                className={`flex-1 py-3 rounded-xl items-center justify-center flex-row ${
+                  activeTab === 'SAVED' ? 'bg-indigo-500' : 'bg-transparent'
+                }`}
+              >
+                <Bookmark color={activeTab === 'SAVED' ? 'white' : '#6b7280'} size={12} className="mr-1.5" />
+                <Text className={`font-display font-bold text-xs ${activeTab === 'SAVED' ? 'text-white' : 'text-gray-500'}`}>
+                  Tersimpan ({savedReports.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View className="mb-6 bg-white dark:bg-zen-cardDark p-4 rounded-[24px] border border-zen-border dark:border-zen-borderDark shadow-sm">
-              <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-xl mb-3 border border-zen-border/30 dark:border-zen-borderDark/40">
+              <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-xl mb-4 border border-zen-border/30 dark:border-zen-borderDark/40">
                 <Search color="#9ca3af" size={16} className="mr-2" />
                 <TextInput
                   placeholder="Cari aduan atau nama warga..."
@@ -429,29 +537,87 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
                 />
               </View>
               
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                {(['ALL', 'PENDING', 'VALID', 'RESOLVED'] as const).map((status) => (
-                  <TouchableOpacity
-                    key={status}
-                    onPress={() => setStatusFilter(status)}
-                    className={`px-3.5 py-1.5 rounded-lg mr-2 flex-row items-center border ${
-                      statusFilter === status
-                        ? 'bg-indigo-500 border-indigo-500'
-                        : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
-                    }`}
-                  >
-                    <Text 
-                      className={`font-sans font-bold text-[9px] ${
-                        statusFilter === status
-                          ? 'text-white'
-                          : 'text-gray-600 dark:text-gray-400'
+              {/* Category Filter Scroll */}
+              <View className="mb-3">
+                <Text className="font-display font-bold text-[9px] text-gray-400 dark:text-stone-500 uppercase tracking-widest mb-2 pl-0.5">Filter Kategori:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                  {[
+                    { id: null, name: 'Semua Kategori' },
+                    { id: 1, name: 'Infrastruktur' },
+                    { id: 2, name: 'Lingkungan' },
+                    { id: 3, name: 'Fasilitas Umum' },
+                    { id: 4, name: 'Keamanan' },
+                  ].map((cat) => (
+                    <TouchableOpacity
+                      key={cat.id === null ? 'null' : cat.id}
+                      onPress={() => setCategoryFilter(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg mr-2 border ${
+                        categoryFilter === cat.id
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
                       }`}
                     >
-                      {status === 'ALL' ? 'Semua Laporan' : status === 'VALID' ? 'DIPROSES' : status}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+                      <Text className={`font-sans font-bold text-[9px] ${categoryFilter === cat.id ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Status Filter Scroll */}
+              <View className="mb-3">
+                <Text className="font-display font-bold text-[9px] text-gray-400 dark:text-stone-500 uppercase tracking-widest mb-2 pl-0.5">Status Laporan:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                  {(['ALL', 'PENDING', 'VALID', 'RESOLVED'] as const).map((status) => (
+                    <TouchableOpacity
+                      key={status}
+                      onPress={() => setStatusFilter(status)}
+                      className={`px-3.5 py-1.5 rounded-lg mr-2 flex-row items-center border ${
+                        statusFilter === status
+                          ? 'bg-indigo-500 border-indigo-500'
+                          : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
+                      }`}
+                    >
+                      <Text 
+                        className={`font-sans font-bold text-[9px] ${
+                          statusFilter === status
+                            ? 'text-white'
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}
+                      >
+                        {status === 'ALL' ? 'Semua Status' : status === 'VALID' ? 'DIPROSES' : status}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Sort By Options */}
+              <View className="mt-3 pt-3 border-t border-gray-100 dark:border-zinc-800/80">
+                <Text className="font-display font-bold text-[9px] text-gray-400 dark:text-stone-500 uppercase tracking-widest mb-2 pl-0.5">Urutan Laporan:</Text>
+                <View className="flex-row gap-2">
+                  {[
+                    { id: 'RECENT', name: 'Terkini' },
+                    { id: 'VOTES', name: 'Dukungan Warga' },
+                    { id: 'COMMENTS', name: 'Komentar Terbanyak' },
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      onPress={() => setSortBy(item.id as any)}
+                      className={`px-2.5 py-1.5 rounded-lg border flex-1 items-center ${
+                        sortBy === item.id
+                          ? 'bg-indigo-500 border-indigo-500'
+                          : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
+                      }`}
+                    >
+                      <Text className={`font-sans font-bold text-[9px] text-center ${sortBy === item.id ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
 
             {/* Reports List */}
@@ -502,7 +668,7 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
                         </View>
                         <View className="flex-row justify-between items-center mt-1">
                           <Text className="font-sans text-stone-400 dark:text-stone-500 text-[8px] flex-1 mr-1" numberOfLines={1}>
-                            Oleh: {report.profile?.full_name || 'Warga'}
+                            Oleh: {report.profile?.full_name || report.user?.full_name || 'Warga'}
                           </Text>
                           <Text className="font-sans text-[8px] font-bold text-indigo-500">Moderasi →</Text>
                         </View>
