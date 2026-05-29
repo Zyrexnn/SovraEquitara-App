@@ -13,7 +13,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const [stats, setStats] = useState({ pending: 0, resolved: 0, total: 0 });
   const [refreshing, setRefreshing] = useState(false);
-  const colorScheme = useColorScheme();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
   const fetchStats = async () => {

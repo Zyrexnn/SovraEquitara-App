@@ -28,7 +28,7 @@ import {
 
 export default function SuperAdminHub() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#f3f4f6' : '#374151';
   
