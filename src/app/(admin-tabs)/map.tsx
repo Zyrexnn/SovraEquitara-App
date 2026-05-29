@@ -4,13 +4,13 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { apiClient } from '../../api/client';
 import { useRouter } from 'expo-router';
-import { MapPin, RefreshCw, Layers } from 'lucide-react-native';
+import { Map, RefreshCw } from 'lucide-react-native';
 
-export default function MapScreen() {
+export default function AdminMapScreen() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [reports, setReports] = useState<any[]>([]);
   const [filteredReports, setFilteredReports] = useState<any[]>([]);
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED' | 'REJECTED'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function MapScreen() {
           longitude: loc.coords.longitude
         });
       } catch (e) {
-        console.log('Error fetching initial position', e);
+        console.log('Error fetching GPS initial position', e);
       }
     })();
 
@@ -44,14 +44,14 @@ export default function MapScreen() {
   const fetchReports = async () => {
     setIsRefreshing(true);
     try {
-      const res = await apiClient.get('/public-reports');
+      const res = await apiClient.get('/admin/reports');
       if (res.data?.data) {
         const data = res.data.data;
         setReports(data);
         applyFilter(data, statusFilter);
       }
     } catch (e) {
-      console.log('Error fetching map reports', e);
+      console.log('Error fetching admin map reports', e);
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
@@ -66,7 +66,7 @@ export default function MapScreen() {
     }
   };
 
-  const handleFilterChange = (filter: 'ALL' | 'PENDING' | 'VALID' | 'RESOLVED') => {
+  const handleFilterChange = (filter: 'ALL' | 'PENDING' | 'VALID' | 'RESOLVED' | 'REJECTED') => {
     setStatusFilter(filter);
     applyFilter(reports, filter);
   };
@@ -75,23 +75,22 @@ export default function MapScreen() {
     try {
       const message = JSON.parse(event.nativeEvent.data);
       if (message.type === 'navigate' && message.reportId) {
-        router.push(`/(tabs)/reports/${message.reportId}` as any);
+        router.push(`/admin/report/${message.reportId}` as any);
       }
     } catch (e) {
-      console.error('Error handling WebView message', e);
+      console.error('Error handling WebView message in admin', e);
     }
   };
 
-  // Get dynamic Backend URL to serve images statically
   const backendUrl = apiClient.defaults.baseURL
     ? apiClient.defaults.baseURL.replace('/api', '')
     : 'http://localhost:3000';
 
-  const centerLat = userLocation?.latitude || -6.200000; // Jakarta default
+  const centerLat = userLocation?.latitude || -6.200000;
   const centerLng = userLocation?.longitude || 106.816666;
   const zoomLevel = userLocation ? 14 : 11;
 
-  // Build high-fidelity Leaflet HTML string
+  // Leaflet HTML string tailored for Admin moderation console
   const leafletHTML = `
     <!DOCTYPE html>
     <html>
@@ -113,7 +112,7 @@ export default function MapScreen() {
           display: none !important;
         }
         
-        /* Elegant Custom Popup Styles */
+        /* Premium custom popup style */
         .leaflet-popup-content-wrapper {
           background: ${isDark ? '#1a1a1a' : '#ffffff'} !important;
           color: ${isDark ? '#fafaf9' : '#1c1917'} !important;
@@ -132,27 +131,27 @@ export default function MapScreen() {
         
         /* Pulsing Blue Dot for User Location */
         .user-location-marker {
-          background: #3b82f6;
+          background: #6366f1; /* Indigo color for Admin */
           width: 14px;
           height: 14px;
           border-radius: 50%;
           border: 2.5px solid #ffffff;
-          box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.4);
           animation: pulse 1.8s infinite;
         }
         @keyframes pulse {
           0% {
-            box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 0px rgba(99, 102, 241, 0.7);
           }
           70% {
-            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
           }
           100% {
-            box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 0px rgba(99, 102, 241, 0);
           }
         }
         
-        /* Elegant Pin Marker */
+        /* Pin Marker */
         .custom-pin {
           width: 22px;
           height: 22px;
@@ -179,13 +178,11 @@ export default function MapScreen() {
     <body>
       <div id="map"></div>
       <script>
-        // Initialize map centered at current region
         var map = L.map('map', {
           zoomControl: false,
           attributionControl: false
         }).setView([${centerLat}, ${centerLng}], ${zoomLevel});
 
-        // Use dynamic theme base-layer from CartoDB
         var tileUrl = ${isDark ? 
           "'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'" : 
           "'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'"
@@ -195,7 +192,6 @@ export default function MapScreen() {
           maxZoom: 19
         }).addTo(map);
 
-        // Draw user GPS location dot if resolved
         if (${userLocation ? 'true' : 'false'}) {
           var userIcon = L.divIcon({
             className: 'user-location-marker-container',
@@ -206,7 +202,6 @@ export default function MapScreen() {
           L.marker([${userLocation?.latitude || 0}, ${userLocation?.longitude || 0}], { icon: userIcon }).addTo(map);
         }
 
-        // Parse reports to add pins
         var reports = ${JSON.stringify(filteredReports)};
 
         var statusColors = {
@@ -259,7 +254,7 @@ export default function MapScreen() {
           popupHtml += '<h4 style="margin: 0 0 6px 0; font-size: 12px; font-weight: 800; line-height: 1.35; color: ${isDark ? '#fafaf9' : '#1c1917'}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">' + report.description + '</h4>';
           popupHtml += '<p style="margin: 0 0 10px 0; font-size: 9.5px; color: ${isDark ? '#a8a29e' : '#78716c'}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">📍 ' + report.location_detail + '</p>';
           
-          popupHtml += '<button onclick="navigateToReport(\\'' + report.id + '\\')" style="width: 100%; padding: 7px 0; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: background 0.2s;">Buka Detail Lengkap →</button>';
+          popupHtml += '<button onclick="navigateToReport(\\'' + report.id + '\\')" style="width: 100%; padding: 7px 0; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: background 0.2s;">Moderasi Aduan →</button>';
           popupHtml += '</div>';
 
           marker.bindPopup(popupHtml);
@@ -273,14 +268,13 @@ export default function MapScreen() {
     </html>
   `;
 
-  // WebView key to trigger reload correctly on filter/location change
-  const webViewKey = `map-${statusFilter}-${isDark}-${userLocation ? 'loc' : 'noloc'}-${filteredReports.length}`;
+  const webViewKey = `admin-map-${statusFilter}-${isDark}-${userLocation ? 'loc' : 'noloc'}-${filteredReports.length}`;
 
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-zen-bg dark:bg-zen-darkBg">
-        <ActivityIndicator size="large" color="#10b981" />
-        <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mt-3">Memuat peta aduan spasial kota...</Text>
+        <ActivityIndicator size="large" color="#6366f1" />
+        <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mt-3">Memuat peta moderasi spasial...</Text>
       </View>
     );
   }
@@ -302,31 +296,35 @@ export default function MapScreen() {
       {/* Floating Header */}
       <View className="absolute top-12 left-4 right-4 bg-white/95 dark:bg-black/95 p-4 rounded-2xl shadow-zen border border-gray-100 dark:border-gray-800 flex-row justify-between items-center">
         <View className="flex-1 mr-3">
-          <Text className="font-display text-base font-bold text-gray-900 dark:text-white">Peta Laporan</Text>
+          <View className="flex-row items-center">
+            <Map color="#6366f1" size={16} className="mr-1.5" />
+            <Text className="font-display text-base font-bold text-gray-900 dark:text-white">Peta Moderasi</Text>
+          </View>
           <Text className="font-sans text-[10px] text-gray-500 dark:text-gray-400" numberOfLines={1}>
-            Lihat masalah infrastruktur di sekitarmu
+            Pantau dan tindak lanjuti aduan wilayah warga
           </Text>
         </View>
         <TouchableOpacity 
           onPress={fetchReports}
           disabled={isRefreshing}
-          className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-full"
+          className="p-2 bg-indigo-50 dark:bg-indigo-950/20 rounded-full"
         >
           {isRefreshing ? (
-            <ActivityIndicator size="small" color="#10b981" />
+            <ActivityIndicator size="small" color="#6366f1" />
           ) : (
-            <RefreshCw color="#10b981" size={16} />
+            <RefreshCw color="#6366f1" size={16} />
           )}
         </TouchableOpacity>
       </View>
 
       {/* Floating Filters Scrollable */}
-      <View className="absolute top-32 left-4 right-4 flex-row justify-between">
+      <View className="absolute top-32 left-4 right-4 flex-row justify-between flex-wrap">
         {[
           { key: 'ALL', label: 'Semua', color: 'bg-stone-500' },
           { key: 'VALID', label: 'Valid', color: 'bg-blue-500' },
           { key: 'PENDING', label: 'Diproses', color: 'bg-amber-500' },
-          { key: 'RESOLVED', label: 'Selesai', color: 'bg-emerald-500' }
+          { key: 'RESOLVED', label: 'Selesai', color: 'bg-emerald-500' },
+          { key: 'REJECTED', label: 'Ditolak', color: 'bg-red-500' }
         ].map((filter) => (
           <TouchableOpacity
             key={filter.key}
@@ -334,14 +332,14 @@ export default function MapScreen() {
             onPress={() => handleFilterChange(filter.key as any)}
             className={`flex-1 mx-0.5 py-2 px-1 rounded-xl border flex-row justify-center items-center shadow-sm ${
               statusFilter === filter.key
-                ? 'bg-stone-200 dark:bg-stone-800 border-stone-300 dark:border-stone-700'
+                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-900'
                 : 'bg-white/95 dark:bg-black/95 border-gray-100 dark:border-gray-800'
             }`}
           >
-            <View className={`w-2 h-2 rounded-full ${filter.color} mr-1.5`} />
-            <Text className={`font-display text-[9.5px] font-bold ${
+            <View className={`w-1.5 h-1.5 rounded-full ${filter.color} mr-1`} />
+            <Text className={`font-display text-[9px] font-bold ${
               statusFilter === filter.key
-                ? 'text-gray-900 dark:text-white'
+                ? 'text-indigo-600 dark:text-indigo-300'
                 : 'text-gray-500 dark:text-gray-400'
             }`}>
               {filter.label}
@@ -360,6 +358,6 @@ const styles = StyleSheet.create({
   map: {
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
-    opacity: 0.99, // Render fix for webviews on Android emulator
+    opacity: 0.99,
   }
 });
