@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare } from 'lucide-react-native';
+import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles } from 'lucide-react-native';
 
 export default function AdminDashboardScreen() {
   const { user } = useAuthStore();
@@ -163,6 +163,27 @@ export default function AdminDashboardScreen() {
               </BentoCard>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity 
+            activeOpacity={0.9} 
+            onPress={() => router.push('/admin/ai-assistant' as any)}
+            className="w-full mt-4"
+          >
+            <BentoCard className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 p-4 h-28 flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1 mr-3">
+                <View className="p-3 bg-emerald-505 bg-emerald-500 rounded-2xl mr-4 shadow-sm">
+                  <Sparkles color="white" size={24} />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-display font-bold text-gray-900 dark:text-white text-base">Asisten AI Analitis</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-xs mt-0.5 leading-relaxed" numberOfLines={2}>
+                    Analisis kepadatan masalah kota dan rumuskan tanggapan aduan keluhan warga.
+                  </Text>
+                </View>
+              </View>
+              <Text className="font-sans text-emerald-500 font-bold text-lg">→</Text>
+            </BentoCard>
+          </TouchableOpacity>
         </View>
 
         {/* Search & Filter Section */}

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, User } from 'lucide-react-native';
+import { Home, User, Map } from 'lucide-react-native';
 
 export default function AdminTabsLayout() {
   return (
@@ -31,6 +31,13 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Beranda',
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: 'Peta',
+          tabBarIcon: ({ color, size }) => <Map color={color} size={size} />,
         }}
       />
       <Tabs.Screen
