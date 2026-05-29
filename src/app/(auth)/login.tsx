@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
@@ -72,10 +72,18 @@ export default function LoginScreen() {
             value={password}
             onChangeText={(text) => setPassword(text)}
           />
+          
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => router.push('/(auth)/forgot-password' as any)}
+            className="self-end mt-1 mb-4"
+          >
+            <Text className="font-sans text-xs font-semibold text-indigo-500 dark:text-indigo-400">Lupa Kata Sandi?</Text>
+          </TouchableOpacity>
 
           <ZenButton 
             label="Login" 
-            className="mt-4" 
+            className="mt-2" 
             isLoading={isLoading} 
             onPress={handleLogin} 
           />

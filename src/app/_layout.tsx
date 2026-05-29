@@ -33,6 +33,7 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
     const inAdminGroup = segments[0] === '(admin-tabs)';
     const inUserGroup = segments[0] === '(tabs)';
+    const inSuperAdminGroup = segments[0] === 'superadmin';
 
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated
@@ -40,8 +41,10 @@ export default function RootLayout() {
     } else if (user) {
       const roleLower = user.role?.toLowerCase();
       const isAdmin = roleLower === 'admin' || roleLower === 'super_admin' || roleLower === 'superadmin';
+      const isSuperAdmin = roleLower === 'super_admin' || roleLower === 'superadmin';
 
-      const accessingAdminOnly = inAdminGroup || segments[0] === 'admin';
+      const accessingAdminOnly = inAdminGroup || segments[0] === 'admin' || inSuperAdminGroup;
+      const accessingSuperAdminOnly = inSuperAdminGroup;
       const accessingUserOnly = inUserGroup;
 
       if (inAuthGroup) {
@@ -57,6 +60,13 @@ export default function RootLayout() {
         } else if (!isAdmin && accessingAdminOnly) {
           // Citizens shouldn't access admin tabs/pages
           router.replace('/(tabs)' as any);
+        } else if (accessingSuperAdminOnly && !isSuperAdmin) {
+          // Non-super-admins cannot access superadmin console
+          if (isAdmin) {
+            router.replace('/(admin-tabs)' as any);
+          } else {
+            router.replace('/(tabs)' as any);
+          }
         }
       }
     }
@@ -77,6 +87,10 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="admin/report/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="superadmin/index" options={{ headerShown: false }} />
+        <Stack.Screen name="superadmin/admins" options={{ headerShown: false }} />
+        <Stack.Screen name="superadmin/users" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </>

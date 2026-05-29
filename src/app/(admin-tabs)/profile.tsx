@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { apiClient, getImageUrl } from '../../api/client';
-import { LogOut, User as UserIcon, Shield, Settings } from 'lucide-react-native';
+import { LogOut, User as UserIcon, Shield, Settings, ShieldAlert } from 'lucide-react-native';
 
 export default function AdminProfileScreen() {
   const router = useRouter();
@@ -84,6 +84,30 @@ export default function AdminProfileScreen() {
           <Settings color="#6366f1" size={18} />
         </View>
       </TouchableOpacity>
+
+      {/* Super Admin Console Shortcut */}
+      {(user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'superadmin') && (
+        <TouchableOpacity 
+          className="w-full mb-6" 
+          activeOpacity={0.9}
+          onPress={() => router.push('/superadmin' as any)}
+        >
+          <BentoCard className="bg-amber-500 dark:bg-amber-950/20 border border-amber-400/30 p-4 h-24 flex-row items-center justify-between">
+            <View className="flex-row items-center flex-1 mr-3">
+              <View className="p-2.5 bg-white/20 dark:bg-amber-500/20 rounded-xl mr-3">
+                <ShieldAlert color="white" size={22} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-display font-bold text-white text-base">Konsol Super Admin</Text>
+                <Text className="font-sans text-amber-100 dark:text-amber-300 text-[10px] mt-0.5" numberOfLines={1}>
+                  Kelola Akses Admin & Direktori Warga Kota
+                </Text>
+              </View>
+            </View>
+            <Text className="font-sans text-white font-bold text-lg">→</Text>
+          </BentoCard>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity 
         className="w-full mb-6" 

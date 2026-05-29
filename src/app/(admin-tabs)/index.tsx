@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Image, ActivityIndicator, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
+import { WebView } from 'react-native-webview';
 import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles } from 'lucide-react-native';
 
 export default function AdminDashboardScreen() {
@@ -13,6 +14,8 @@ export default function AdminDashboardScreen() {
   const [reports, setReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +64,181 @@ export default function AdminDashboardScreen() {
     
     return matchesSearch && matchesStatus;
   });
+
+  // 1. Calculate 7-day trend dynamically
+  const trendData = (() => {
+    const days = [];
+    const counts = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      days.push(dateString);
+      
+      const dayStart = new Date(d.setHours(0, 0, 0, 0)).getTime();
+      const dayEnd = new Date(d.setHours(23, 59, 59, 999)).getTime();
+      
+      const count = reports.filter(r => {
+        const t = new Date(r.created_at).getTime();
+        return t >= dayStart && t <= dayEnd;
+      }).length;
+      counts.push(count);
+    }
+    return { labels: days, data: counts };
+  })();
+
+  // 2. Calculate Category Distribution (Top 5) dynamically
+  const categoryDistribution = (() => {
+    const counts: Record<string, number> = {};
+    reports.forEach(r => {
+      const catName = r.category?.name || 'Umum';
+      counts[catName] = (counts[catName] || 0) + 1;
+    });
+    
+    const sorted = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+      
+    return {
+      labels: sorted.map(item => item[0]),
+      data: sorted.map(item => item[1]),
+    };
+  })();
+
+  // Admin Dashboard ChartJS HTML String
+  const adminChartHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: transparent;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          height: 100%;
+          color: ${isDark ? '#fafaf9' : '#1c1917'};
+        }
+        .chart-box {
+          margin-bottom: 24px;
+          position: relative;
+          height: 175px;
+          width: 100%;
+        }
+        .title {
+          font-size: 11px;
+          font-weight: 800;
+          margin: 0 0 10px 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: ${isDark ? '#a8a29e' : '#78716c'};
+        }
+      </style>
+    </head>
+    <body>
+      <div class="title">Tren Aduan (7 Hari Terakhir)</div>
+      <div class="chart-box">
+        <canvas id="trendChart"></canvas>
+      </div>
+      
+      <div class="title" style="margin-top: 12px;">Topik Laporan Terbanyak</div>
+      <div class="chart-box">
+        <canvas id="categoryChart"></canvas>
+      </div>
+
+      <script>
+        var textColor = ${isDark ? "'#d6d3d1'" : "'#44403c'"};
+        var gridColor = ${isDark ? "'rgba(255, 255, 255, 0.08)'" : "'rgba(0, 0, 0, 0.05)'"};
+
+        // 1. Line Chart: Trend
+        var trendCtx = document.getElementById('trendChart').getContext('2d');
+        var trendGrad = trendCtx.createLinearGradient(0, 0, 0, 150);
+        trendGrad.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+        trendGrad.addColorStop(1, 'rgba(99, 102, 241, 0.01)');
+
+        new Chart(trendCtx, {
+          type: 'line',
+          data: {
+            labels: ${JSON.stringify(trendData.labels)},
+            datasets: [{
+              data: ${JSON.stringify(trendData.data)},
+              borderColor: '#6366f1',
+              borderWidth: 2.5,
+              backgroundColor: trendGrad,
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: '#6366f1',
+              pointRadius: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: textColor, font: { weight: 'bold', size: 9 } }
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: { 
+                  color: textColor, 
+                  font: { weight: 'bold', size: 9 },
+                  stepSize: 1,
+                  beginAtZero: true
+                }
+              }
+            }
+          }
+        });
+
+        // 2. Bar Chart: Category
+        var catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+          type: 'bar',
+          data: {
+            labels: ${JSON.stringify(categoryDistribution.labels)},
+            datasets: [{
+              data: ${JSON.stringify(categoryDistribution.data)},
+              backgroundColor: '#10b981',
+              borderRadius: 6,
+              barThickness: 12
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: { 
+                  color: textColor, 
+                  font: { weight: 'bold', size: 9 },
+                  stepSize: 1,
+                  beginAtZero: true
+                }
+              },
+              y: {
+                grid: { display: false },
+                ticks: { color: textColor, font: { weight: 'bold', size: 9 } }
+              }
+            }
+          }
+        });
+      </script>
+    </body>
+    </html>
+  `;
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
@@ -126,6 +304,23 @@ export default function AdminDashboardScreen() {
             </BentoCard>
           </View>
         </View>
+
+        {/* Grafik Tren & Spasial Analitis Kota */}
+        {reports.length > 0 && (
+          <View className="mb-6">
+            <BentoCard className="h-[490px]">
+              <Text className="font-display font-bold text-gray-900 dark:text-white text-base mb-4">Tren & Distribusi Aduan Wilayah</Text>
+              <View className="flex-1 w-full bg-transparent">
+                <WebView
+                  originWhitelist={['*']}
+                  source={{ html: adminChartHtml }}
+                  style={{ backgroundColor: 'transparent', flex: 1, opacity: 0.99 }}
+                  scrollEnabled={false}
+                />
+              </View>
+            </BentoCard>
+          </View>
+        )}
 
         {/* Fitur Administrasi Bento Cards */}
         <View className="mb-6">
