@@ -35,9 +35,20 @@ export default function RootLayout() {
     const inUserGroup = segments[0] === '(tabs)';
     const inSuperAdminGroup = segments[0] === 'superadmin';
 
+    const navigateSafely = (path: string) => {
+      const timer = setTimeout(() => {
+        try {
+          router.replace(path as any);
+        } catch (err) {
+          console.warn('Redirect failed:', err);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
+    };
+
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated
-      router.replace('/(auth)/login');
+      return navigateSafely('/(auth)/login');
     } else if (user) {
       const roleLower = user.role?.toLowerCase();
       const isAdmin = roleLower === 'admin' || roleLower === 'super_admin' || roleLower === 'superadmin';
@@ -49,23 +60,23 @@ export default function RootLayout() {
 
       if (inAuthGroup) {
         if (isAdmin) {
-          router.replace('/(admin-tabs)' as any);
+          return navigateSafely('/(admin-tabs)');
         } else {
-          router.replace('/(tabs)' as any);
+          return navigateSafely('/(tabs)');
         }
       } else {
         if (isAdmin && accessingUserOnly) {
           // Admin shouldn't access user tabs
-          router.replace('/(admin-tabs)' as any);
+          return navigateSafely('/(admin-tabs)');
         } else if (!isAdmin && accessingAdminOnly) {
           // Citizens shouldn't access admin tabs/pages
-          router.replace('/(tabs)' as any);
+          return navigateSafely('/(tabs)');
         } else if (accessingSuperAdminOnly && !isSuperAdmin) {
           // Non-super-admins cannot access superadmin console
           if (isAdmin) {
-            router.replace('/(admin-tabs)' as any);
+            return navigateSafely('/(admin-tabs)');
           } else {
-            router.replace('/(tabs)' as any);
+            return navigateSafely('/(tabs)');
           }
         }
       }
