@@ -181,7 +181,7 @@ export default function AdminAIAssistantScreen() {
           value={input}
           onChangeText={setInput}
           onSubmitEditing={sendMessage}
-          disabled={isLoading}
+          editable={!isLoading}
         />
         <TouchableOpacity 
           onPress={sendMessage}

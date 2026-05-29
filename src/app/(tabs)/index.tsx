@@ -6,7 +6,7 @@ import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { WebView } from 'react-native-webview';
-import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock, Sun, Moon } from 'lucide-react-native';
+import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock, Sun, Moon, User as UserIcon } from 'lucide-react-native';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();
@@ -297,7 +297,7 @@ export default function DashboardScreen() {
                         {item.avatar_url ? (
                           <Image source={{ uri: getImageUrl(item.avatar_url) }} className="w-full h-full" />
                         ) : (
-                          <User color="#10b981" size={14} />
+                          <UserIcon color="#10b981" size={14} />
                         )}
                       </View>
                       <Text className="font-sans text-xs font-bold text-gray-700 dark:text-gray-200 flex-1" numberOfLines={1}>

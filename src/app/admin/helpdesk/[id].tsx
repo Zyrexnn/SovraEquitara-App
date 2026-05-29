@@ -203,7 +203,7 @@ export default function AdminChatRoomScreen() {
           value={input}
           onChangeText={setInput}
           onSubmitEditing={sendReply}
-          disabled={isSending}
+          editable={!isSending}
         />
         <TouchableOpacity 
           onPress={sendReply}
