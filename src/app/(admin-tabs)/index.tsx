@@ -243,84 +243,88 @@ export default function AdminDashboardScreen() {
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
       <ScrollView 
-        contentContainerStyle={{ padding: 16, paddingTop: 60, paddingBottom: 30 }}
+        contentContainerStyle={{ padding: 16, paddingTop: 60, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Header */}
-        <View className="mb-6 flex-row justify-between items-center">
-          <View>
-            <Text className="font-sans text-gray-500 dark:text-gray-400">Konsol Utama</Text>
-            <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white">
+        <View className="mb-8 flex-row justify-between items-center">
+          <View className="flex-1 mr-3">
+            <Text className="font-sans text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Konsol Utama</Text>
+            <Text className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1" numberOfLines={1}>
               {user?.full_name || 'Admin'}
             </Text>
           </View>
-          <View className="bg-indigo-100 dark:bg-indigo-900/30 px-3 py-1.5 rounded-full flex-row items-center">
-            <Shield color="#6366f1" size={14} className="mr-1.5" />
-            <Text className="font-sans font-bold text-indigo-600 dark:text-indigo-400 text-xs uppercase">
+          <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-4 py-2 rounded-full border border-indigo-500/10 flex-row items-center">
+            <Shield color="#6366f1" size={12} className="mr-1.5" />
+            <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
               {user?.role || 'ADMIN'}
             </Text>
           </View>
         </View>
 
         {/* Stats Bento Grid */}
-        <View className="flex-row flex-wrap justify-between mb-4">
-          {/* Total Laporan */}
-          <View className="w-[48%] mb-4">
-            <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
-              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                <FileText color="#6366f1" size={16} />
-              </View>
-              <View>
-                <Text className="font-display text-2xl font-black text-indigo-600 dark:text-indigo-400">{stats.total}</Text>
-                <Text className="font-sans text-[10px] font-bold text-indigo-700/80 dark:text-indigo-300/85 uppercase tracking-wider mt-0.5">Total Laporan</Text>
-              </View>
-            </BentoCard>
+        <View className="mb-5">
+          <View className="flex-row gap-4 mb-4">
+            {/* Total Laporan */}
+            <View className="flex-1">
+              <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                  <FileText color="#6366f1" size={16} />
+                </View>
+                <View>
+                  <Text className="font-display text-2xl font-black text-indigo-600 dark:text-indigo-400">{stats.total}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-indigo-700/80 dark:text-indigo-300/85 uppercase tracking-wider mt-0.5">Total Laporan</Text>
+                </View>
+              </BentoCard>
+            </View>
+
+            {/* Pending Review */}
+            <View className="flex-1">
+              <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                  <Clock color="#d97706" size={16} />
+                </View>
+                <View>
+                  <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Pending</Text>
+                </View>
+              </BentoCard>
+            </View>
           </View>
 
-          {/* Pending Review */}
-          <View className="w-[48%] mb-4">
-            <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
-              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                <Clock color="#d97706" size={16} />
-              </View>
-              <View>
-                <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
-                <Text className="font-sans text-[10px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Pending</Text>
-              </View>
-            </BentoCard>
-          </View>
+          <View className="flex-row gap-4">
+            {/* Terverifikasi */}
+            <View className="flex-1">
+              <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                  <CheckCircle color="#10b981" size={16} />
+                </View>
+                <View>
+                  <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.verified}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Terverifikasi</Text>
+                </View>
+              </BentoCard>
+            </View>
 
-          {/* Terverifikasi */}
-          <View className="w-[48%] mb-4">
-            <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
-              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                <CheckCircle color="#10b981" size={16} />
-              </View>
-              <View>
-                <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.verified}</Text>
-                <Text className="font-sans text-[10px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Terverifikasi</Text>
-              </View>
-            </BentoCard>
-          </View>
-
-          {/* Terselesaikan */}
-          <View className="w-[48%] mb-4">
-            <BentoCard className="bg-blue-50/70 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
-              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                <CheckCircle color="#3b82f6" size={16} />
-              </View>
-              <View>
-                <Text className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">{stats.resolved}</Text>
-                <Text className="font-sans text-[10px] font-bold text-blue-700/80 dark:text-blue-300/85 uppercase tracking-wider mt-0.5">Selesai</Text>
-              </View>
-            </BentoCard>
+            {/* Terselesaikan */}
+            <View className="flex-1">
+              <BentoCard className="bg-blue-50/70 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                  <CheckCircle color="#3b82f6" size={16} />
+                </View>
+                <View>
+                  <Text className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">{stats.resolved}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-blue-700/80 dark:text-blue-300/85 uppercase tracking-wider mt-0.5">Selesai</Text>
+                </View>
+              </BentoCard>
+            </View>
           </View>
         </View>
 
         {/* Grafik Tren & Spasial Analitis Kota */}
         {reports.length > 0 && (
           <View className="mb-6">
-            <BentoCard className="h-[490px]">
+            <BentoCard className="h-[490px] border border-gray-100 dark:border-gray-800/80 rounded-3xl p-5 shadow-sm">
               <Text className="font-display font-bold text-gray-900 dark:text-white text-base mb-4">Tren & Distribusi Aduan Wilayah</Text>
               <View className="flex-1 w-full bg-transparent">
                 <WebView
@@ -336,20 +340,23 @@ export default function AdminDashboardScreen() {
 
         {/* Fitur Administrasi Bento Cards */}
         <View className="mb-6">
-          <Text className="font-display text-lg font-bold text-gray-900 dark:text-white mb-3">Tindakan Admin</Text>
-          <View className="flex-row justify-between">
+          <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pl-1">
+            Tindakan Admin
+          </Text>
+          
+          <View className="flex-row gap-4 mb-4">
             <TouchableOpacity 
               activeOpacity={0.9} 
               onPress={() => router.push('/admin/broadcast' as any)}
-              className="w-[48%]"
+              className="flex-1"
             >
-              <BentoCard className="bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 p-4 h-32 justify-between">
-                <View className="p-2 bg-purple-500 rounded-xl self-start">
-                  <Megaphone color="white" size={20} />
+              <BentoCard className="bg-purple-50/70 border border-purple-100 dark:bg-purple-950/20 dark:border-purple-900/30 p-4 h-32 justify-between shadow-none rounded-3xl">
+                <View className="p-2 bg-purple-500 rounded-xl self-start shadow-sm">
+                  <Megaphone color="white" size={18} />
                 </View>
                 <View>
                   <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Kirim Pengumuman</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-0.5">Broadcast ke semua warga</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[9px] mt-0.5 leading-normal">Broadcast ke semua warga kota</Text>
                 </View>
               </BentoCard>
             </TouchableOpacity>
@@ -357,15 +364,15 @@ export default function AdminDashboardScreen() {
             <TouchableOpacity 
               activeOpacity={0.9} 
               onPress={() => router.push('/admin/helpdesk' as any)}
-              className="w-[48%]"
+              className="flex-1"
             >
-              <BentoCard className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 p-4 h-32 justify-between">
-                <View className="p-2 bg-indigo-500 rounded-xl self-start">
-                  <MessageSquare color="white" size={20} />
+              <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 h-32 justify-between shadow-none rounded-3xl">
+                <View className="p-2 bg-indigo-500 rounded-xl self-start shadow-sm">
+                  <MessageSquare color="white" size={18} />
                 </View>
                 <View>
                   <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Kotak Bantuan</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-0.5">Pantau chat AI & warga</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[9px] mt-0.5 leading-normal">Pantau chat AI & warga kota</Text>
                 </View>
               </BentoCard>
             </TouchableOpacity>
@@ -374,28 +381,28 @@ export default function AdminDashboardScreen() {
           <TouchableOpacity 
             activeOpacity={0.9} 
             onPress={() => router.push('/admin/ai-assistant' as any)}
-            className="w-full mt-4"
+            className="w-full"
           >
-            <BentoCard className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 p-4 h-28 flex-row items-center justify-between">
+            <BentoCard className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-4 h-28 flex-row items-center justify-between shadow-none rounded-3xl">
               <View className="flex-row items-center flex-1 mr-3">
-                <View className="p-3 bg-emerald-505 bg-emerald-500 rounded-2xl mr-4 shadow-sm">
-                  <Sparkles color="white" size={24} />
+                <View className="p-3 bg-emerald-500 rounded-2xl mr-4 shadow-sm">
+                  <Sparkles color="white" size={22} />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-display font-bold text-gray-900 dark:text-white text-base">Asisten AI Analitis</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-xs mt-0.5 leading-relaxed" numberOfLines={2}>
-                    Analisis kepadatan masalah kota dan rumuskan tanggapan aduan keluhan warga.
+                  <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Asisten AI Analitis</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 leading-relaxed" numberOfLines={2}>
+                    Analisis kepadatan masalah kota dan rumuskan tanggapan aduan keluhan warga secara cerdas.
                   </Text>
                 </View>
               </View>
-              <Text className="font-sans text-emerald-500 font-bold text-lg">→</Text>
+              <Text className="font-sans text-emerald-500 dark:text-emerald-400 font-bold text-base">→</Text>
             </BentoCard>
           </TouchableOpacity>
         </View>
 
         {/* Search & Filter Section */}
-        <View className="mb-6 bg-white dark:bg-zen-cardBg p-4 rounded-3xl border border-gray-100 dark:border-gray-800">
-          <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3">
+        <View className="mb-6 bg-white dark:bg-zen-cardBg p-4 rounded-[28px] border border-gray-100 dark:border-gray-800/80 shadow-sm">
+          <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3 border border-gray-100/50 dark:border-gray-800/50">
             <Search color="#9ca3af" size={18} className="mr-2" />
             <TextInput
               placeholder="Cari laporan..."
@@ -414,7 +421,7 @@ export default function AdminDashboardScreen() {
                 className={`px-4 py-2 rounded-xl mr-2 flex-row items-center border ${
                   statusFilter === status
                     ? 'bg-indigo-500 border-indigo-500'
-                    : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-800'
+                    : 'bg-gray-50 dark:bg-gray-800 border-gray-100/50 dark:border-gray-800'
                 }`}
               >
                 <Text 
@@ -432,7 +439,7 @@ export default function AdminDashboardScreen() {
         </View>
 
         {/* Reports List */}
-        <Text className="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">Laporan Masuk ({filteredReports.length})</Text>
+        <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pl-1">Laporan Masuk ({filteredReports.length})</Text>
 
         {isLoading ? (
           <View className="py-10 items-center justify-center">
@@ -450,7 +457,7 @@ export default function AdminDashboardScreen() {
               onPress={() => router.push(`/admin/report/${report.id}` as any)}
               className="mb-4"
             >
-              <BentoCard className="p-0 overflow-hidden shadow-sm flex-row h-28">
+              <BentoCard className="p-0 overflow-hidden shadow-sm flex-row h-28 border border-gray-100 dark:border-gray-800/80 rounded-3xl">
                 {(report.image_urls && report.image_urls.length > 0) || report.image_url ? (
                   <Image 
                     source={{ uri: getImageUrl(report.image_urls?.[0] || report.image_url) }} 
