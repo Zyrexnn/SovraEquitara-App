@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiClient } from '../../api/client';
@@ -11,17 +11,76 @@ export default function ResetPasswordScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
 
+  const [step, setStep] = useState<1 | 2>(1);
+  const [countdown, setCountdown] = useState(0);
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
+  const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const handleVerifyOTP = async () => {
     if (!otp) {
       setError('Masukkan kode OTP');
       return;
     }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      await apiClient.post('/auth/verify-forgot-password-otp', {
+        email: decodeURIComponent(email || ''),
+        token: otp,
+      });
+      setStep(2);
+    } catch (e: any) {
+      console.log('Verify OTP failed', e);
+      setError(e.response?.data?.error || 'Kode OTP salah atau sudah kadaluarsa.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (countdown > 0 || isLoading) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      await apiClient.post('/auth/forgot-password', {
+        email: decodeURIComponent(email || ''),
+      });
+      Alert.alert('Sukses', 'Kode OTP baru telah dikirim ke email Anda.');
+      setCountdown(60);
+      
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (e: any) {
+      console.log('Resend OTP failed', e);
+      setError(e.response?.data?.error || 'Gagal mengirim ulang kode OTP.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (newPassword.length < 6) {
       setError('Password baru minimal 6 karakter');
       return;
@@ -68,7 +127,7 @@ export default function ResetPasswordScreen() {
         >
           <ArrowLeft color="#374151" size={20} />
         </TouchableOpacity>
-
+ 
         {/* Title */}
         <View className="items-center mb-6">
           <View className="p-4 bg-emerald-500 rounded-3xl mb-4 shadow-sm">
@@ -76,7 +135,11 @@ export default function ResetPasswordScreen() {
           </View>
           <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white text-center">Atur Ulang Sandi</Text>
           <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 text-center mt-2 px-4 leading-normal">
-            Masukkan kode OTP yang dikirimkan ke <Text className="font-bold text-indigo-500">{decodeURIComponent(email || '')}</Text> beserta kata sandi baru Anda.
+            {step === 1 
+              ? `Masukkan kode OTP yang dikirimkan ke `
+              : `Langkah Terakhir: Tetapkan kata sandi baru untuk akun `
+            }
+            <Text className="font-bold text-indigo-500">{decodeURIComponent(email || '')}</Text>
           </Text>
         </View>
 
@@ -88,36 +151,65 @@ export default function ResetPasswordScreen() {
 
         {/* Form Card */}
         <BentoCard className="p-5">
-          <ZenInput
-            label="Kode OTP (Token)"
-            placeholder="Masukkan 6 digit OTP"
-            keyboardType="number-pad"
-            value={otp}
-            onChangeText={setOtp}
-          />
+          {step === 1 ? (
+            <>
+              <ZenInput
+                label="Kode OTP (Token)"
+                placeholder="Masukkan 6 digit OTP"
+                keyboardType="number-pad"
+                value={otp}
+                onChangeText={setOtp}
+                autoFocus
+              />
 
-          <ZenInput
-            label="Password Baru"
-            placeholder="Minimal 6 karakter"
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
+              <View className="flex-row justify-between items-center mt-2 mb-4">
+                <TouchableOpacity
+                  disabled={countdown > 0 || isLoading}
+                  onPress={handleResendOTP}
+                  className="py-1"
+                >
+                  <Text className={`font-sans text-xs font-bold ${
+                    countdown > 0 ? 'text-gray-400' : 'text-indigo-500'
+                  }`}>
+                    {countdown > 0 ? `Kirim Ulang (${countdown}s)` : 'Kirim Ulang Kode'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-          <ZenInput
-            label="Konfirmasi Password Baru"
-            placeholder="Ketik ulang password baru"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
+              <ZenButton
+                label="Verifikasi Kode"
+                className="bg-indigo-500"
+                isLoading={isLoading}
+                onPress={handleVerifyOTP}
+              />
+            </>
+          ) : (
+            <>
+              <ZenInput
+                label="Password Baru"
+                placeholder="Minimal 6 karakter"
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+                autoFocus
+              />
 
-          <ZenButton
-            label="Perbarui Kata Sandi"
-            className="mt-4 bg-emerald-500"
-            isLoading={isLoading}
-            onPress={handleSubmit}
-          />
+              <ZenInput
+                label="Konfirmasi Password Baru"
+                placeholder="Ketik ulang password baru"
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+
+              <ZenButton
+                label="Perbarui Kata Sandi"
+                className="mt-4 bg-emerald-500"
+                isLoading={isLoading}
+                onPress={handleSubmit}
+              />
+            </>
+          )}
         </BentoCard>
       </ScrollView>
     </KeyboardAvoidingView>
