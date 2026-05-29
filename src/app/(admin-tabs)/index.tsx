@@ -13,12 +13,6 @@ import { SuperAdminDashboardView } from '../superadmin';
 export default function AdminDashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
-  
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'super_admin';
-  
-  if (isSuperAdmin) {
-    return <SuperAdminDashboardView isStandalone={false} />;
-  }
   const [reports, setReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,6 +22,8 @@ export default function AdminDashboardScreen() {
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
+
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'super_admin';
 
   const fetchReports = async () => {
     try {
@@ -49,8 +45,14 @@ export default function AdminDashboardScreen() {
   };
 
   useEffect(() => {
-    fetchReports();
-  }, []);
+    if (!isSuperAdmin) {
+      fetchReports();
+    }
+  }, [isSuperAdmin]);
+
+  if (isSuperAdmin) {
+    return <SuperAdminDashboardView isStandalone={false} />;
+  }
 
   // Compute stats on the client side
   const stats = {
