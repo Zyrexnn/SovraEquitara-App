@@ -27,7 +27,7 @@ export default function LoginScreen() {
       const response = await apiClient.post('/auth/login', { email, password });
       if (response.data?.access_token && response.data?.user) {
         await login(response.data.access_token, response.data.user);
-        router.replace('/(tabs)' as any);
+        // RootLayout auth guard will handle role-based redirection automatically
       } else {
         setError('Respons server tidak valid');
       }
@@ -40,7 +40,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
