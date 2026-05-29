@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Image, ActivityIndicator, useColorScheme } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
-import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles } from 'lucide-react-native';
+import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon } from 'lucide-react-native';
 
 export default function AdminDashboardScreen() {
   const { user } = useAuthStore();
@@ -14,7 +15,7 @@ export default function AdminDashboardScreen() {
   const [reports, setReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const colorScheme = useColorScheme();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   
   // Search & Filter state
@@ -254,12 +255,26 @@ export default function AdminDashboardScreen() {
               {user?.full_name || 'Admin'}
             </Text>
           </View>
+        <View className="flex-row items-center gap-3">
           <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-4 py-2 rounded-full border border-indigo-500/10 flex-row items-center">
             <Shield color="#6366f1" size={12} className="mr-1.5" />
             <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
               {user?.role || 'ADMIN'}
             </Text>
           </View>
+
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={toggleColorScheme} 
+            className="p-3 bg-white dark:bg-zen-cardBg rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+          >
+            {isDark ? (
+              <Sun color="#f59e0b" size={20} />
+            ) : (
+              <Moon color="#6366f1" size={20} />
+            )}
+          </TouchableOpacity>
+        </View>
         </View>
 
         {/* Stats Bento Grid */}

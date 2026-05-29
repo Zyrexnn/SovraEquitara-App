@@ -5,9 +5,9 @@ import {
   ScrollView, 
   TouchableOpacity, 
   ActivityIndicator, 
-  RefreshControl,
-  useColorScheme
+  RefreshControl
 } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
@@ -21,7 +21,9 @@ import {
   FileText, 
   Clock, 
   CheckCircle, 
-  Sparkles 
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react-native';
 
 export default function SuperAdminHub() {
@@ -85,6 +87,19 @@ export default function SuperAdminHub() {
             <ShieldAlert color="#d97706" size={12} className="mr-1" />
             <Text className="font-sans font-black text-[#d97706] text-[9px] tracking-wider uppercase">SUPER_ADMIN</Text>
           </View>
+
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={toggleColorScheme} 
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"
+          >
+            {isDark ? (
+              <Sun color="#f59e0b" size={18} />
+            ) : (
+              <Moon color="#6366f1" size={18} />
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity 
             onPress={() => router.push('/profile/edit' as any)}
             className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { apiClient } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { WebView } from 'react-native-webview';
-import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock } from 'lucide-react-native';
+import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock, Sun, Moon } from 'lucide-react-native';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();
@@ -130,6 +131,19 @@ export default function DashboardScreen() {
           <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-4 py-2 rounded-full border border-emerald-500/10">
             <Text className="font-display font-black text-emerald-600 dark:text-emerald-400 text-xs tracking-wider">{user?.points || 0} PTS</Text>
           </View>
+          
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={toggleColorScheme} 
+            className="p-3 bg-white dark:bg-zen-cardBg rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+          >
+            {isDark ? (
+              <Sun color="#f59e0b" size={20} />
+            ) : (
+              <Moon color="#6366f1" size={20} />
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={() => router.push('/notifications' as any)} 
