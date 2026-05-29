@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Linking, Platform, TextInput, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiClient, getImageUrl } from '../../../api/client';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { BentoCard } from '../../../components/ui/BentoCard';
-import { ArrowLeft, MapPin, ThumbsUp, Navigation } from 'lucide-react-native';
+import { ArrowLeft, MapPin, ThumbsUp, Navigation, MessageSquare, Shield, Send, User as UserIcon } from 'lucide-react-native';
 import { useAuthStore } from '../../../store/authStore';
 import { WebView } from 'react-native-webview';
 
@@ -15,9 +15,46 @@ export default function ReportDetailScreen() {
   
   const [report, setReport] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [isSendingComment, setIsSendingComment] = useState(false);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
+
+  const fetchComments = async () => {
+    try {
+      const res = await apiClient.get(`/reports/${id}/comments`);
+      if (res.data?.data) {
+        setComments(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setComments(res.data);
+      }
+    } catch (e) {
+      console.log('Error fetching comments', e);
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  };
+
+  const handleSendComment = async () => {
+    if (!commentText.trim() || isSendingComment) return;
+    setIsSendingComment(true);
+    try {
+      const res = await apiClient.post(`/reports/${id}/comments`, { content: commentText.trim() });
+      if (res.status === 200 || res.status === 201) {
+        setCommentText('');
+        fetchComments(); // Reload comments
+      }
+    } catch (e) {
+      console.log('Error sending comment', e);
+      Alert.alert('Gagal', 'Terjadi kesalahan saat mengirim komentar.');
+    } finally {
+      setIsSendingComment(false);
+    }
+  };
 
   useEffect(() => {
     fetchReportDetails();
+    fetchComments();
   }, [id]);
 
   const fetchReportDetails = async () => {
@@ -96,7 +133,7 @@ export default function ReportDetailScreen() {
                 {report.category?.name || 'Laporan Umum'}
               </Text>
               <Text className="font-sans text-xs text-gray-500">
-                Oleh {report.user?.full_name || 'Anonim'}
+                Oleh {report.profile?.full_name || report.user?.full_name || 'Anonim'}
               </Text>
             </View>
             <StatusBadge status={report.status} />
@@ -217,6 +254,97 @@ export default function ReportDetailScreen() {
             </Text>
           </View>
         )}
+
+        {/* Comments Section */}
+        <BentoCard className="p-5 mt-4 shadow-none">
+          <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-gray-100 dark:border-zinc-800/80">
+            <Text className="font-display font-bold text-gray-900 dark:text-white text-base">Diskusi Warga</Text>
+            <View className="flex-row items-center gap-1.5">
+              <MessageSquare color="#10b981" size={16} />
+              <Text className="font-sans text-xs font-bold text-gray-500">{comments.length} Komentar</Text>
+            </View>
+          </View>
+
+          {isCommentsLoading ? (
+            <ActivityIndicator size="small" color="#10b981" className="py-4" />
+          ) : comments.length === 0 ? (
+            <View className="py-6 items-center">
+              <Text className="font-sans text-gray-400 text-xs text-center leading-normal">
+                Belum ada diskusi di laporan ini. Jadilah yang pertama memberikan masukan!
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-4 max-h-[300px] overflow-y-auto mb-4 pr-1">
+              {comments.map((comment) => {
+                const commenter = comment.user || {};
+                const commenterRole = commenter.role?.toLowerCase() || '';
+                const isAdminComment = commenterRole === 'admin' || commenterRole === 'super_admin' || commenterRole === 'superadmin';
+                const isSuperAdminComment = commenterRole === 'super_admin' || commenterRole === 'superadmin';
+
+                return (
+                  <View key={comment.id} className="flex-row items-start border-b border-gray-50 dark:border-zinc-900/10 pb-3 mb-2">
+                    <View className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center mr-2.5 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 shrink-0">
+                      {commenter.avatar_url ? (
+                        <Image source={{ uri: getImageUrl(commenter.avatar_url) }} className="w-full h-full" />
+                      ) : (
+                        <UserIcon color="#9ca3af" size={14} />
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <View className="flex-row items-center flex-wrap mb-1 gap-1">
+                        <Text className="font-display text-xs font-bold text-gray-900 dark:text-white">
+                          {commenter.full_name || 'Warga SovraEquitara'}
+                        </Text>
+                        {isSuperAdminComment ? (
+                          <View className="bg-amber-500/10 px-1.5 py-0.5 rounded-full flex-row items-center border border-amber-500/20">
+                            <Shield color="#f59e0b" size={10} className="mr-0.5" />
+                            <Text className="font-sans text-[8px] font-black text-amber-600 uppercase">Super</Text>
+                          </View>
+                        ) : isAdminComment ? (
+                          <View className="bg-blue-500/10 px-1.5 py-0.5 rounded-full flex-row items-center border border-blue-500/20">
+                            <Shield color="#3b82f6" size={10} className="mr-0.5" />
+                            <Text className="font-sans text-[8px] font-black text-blue-600 uppercase">Admin</Text>
+                          </View>
+                        ) : null}
+                        <Text className="font-sans text-[9px] text-gray-400 dark:text-gray-500 ml-auto">
+                          {new Date(comment.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                        </Text>
+                      </View>
+                      <Text className="font-sans text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {comment.content}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Comment input form */}
+          <View className="flex-row items-center mt-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+            <TextInput
+              className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-full font-sans text-xs mr-2"
+              placeholder="Tulis pendapat atau solusi Anda..."
+              placeholderTextColor="#9ca3af"
+              value={commentText}
+              onChangeText={setCommentText}
+              onSubmitEditing={handleSendComment}
+            />
+            <TouchableOpacity 
+              onPress={handleSendComment}
+              disabled={!commentText.trim() || isSendingComment}
+              className={`w-10 h-10 rounded-full items-center justify-center ${
+                commentText.trim() && !isSendingComment ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
+              }`}
+            >
+              {isSendingComment ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Send color={commentText.trim() ? 'white' : '#9ca3af'} size={14} style={{ marginLeft: 2 }} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </BentoCard>
       </View>
     </ScrollView>
   );
