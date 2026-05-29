@@ -15,11 +15,39 @@ export default function EditProfileScreen() {
 
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [phoneNumber, setPhoneNumber] = useState(''); // Fetching profile details or phone if added
-  const [password, setPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleRequestPasswordChange = async () => {
+    setIsChangingPassword(true);
+    setError('');
+    try {
+      await apiClient.post('/auth/forgot-password', { email: user?.email });
+      Alert.alert(
+        'Kode OTP Terkirim',
+        `Kode verifikasi OTP telah dikirim ke email Anda (${user?.email}).`,
+        [
+          {
+            text: 'Masukkan OTP',
+            onPress: () => {
+              router.push({
+                pathname: '/(auth)/reset-password',
+                params: { email: user?.email }
+              } as any);
+            }
+          }
+        ]
+      );
+    } catch (e: any) {
+      console.log('Failed to request password reset OTP', e);
+      setError(e.response?.data?.error || 'Gagal mengirimkan kode OTP ke email.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const pickImage = async () => {
     try {
@@ -94,9 +122,6 @@ export default function EditProfileScreen() {
 
       if (phoneNumber) {
         payload.phone = phoneNumber;
-      }
-      if (password) {
-        payload.password = password;
       }
 
       await apiClient.put('/profile', payload);
@@ -175,17 +200,19 @@ export default function EditProfileScreen() {
             onChangeText={setPhoneNumber}
           />
 
-          <ZenInput
-            label="Password Baru (Opsional)"
-            placeholder="Masukkan password baru untuk mengganti"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
+          <View className="h-px w-full bg-gray-100 dark:bg-gray-800 my-4" />
+
+          <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mb-2 font-semibold">Keamanan Akun</Text>
+          <ZenButton 
+            label="Ubah Kata Sandi (Kirim OTP)" 
+            className="mb-4 bg-white dark:bg-zinc-800 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400" 
+            isLoading={isChangingPassword} 
+            onPress={handleRequestPasswordChange} 
           />
 
           <ZenButton 
             label="Simpan Perubahan" 
-            className="mt-4 bg-indigo-500" 
+            className="bg-indigo-500" 
             isLoading={isLoading} 
             onPress={handleSave} 
           />
