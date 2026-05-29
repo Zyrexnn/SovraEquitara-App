@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiClient, getImageUrl } from '../../../api/client';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { BentoCard } from '../../../components/ui/BentoCard';
-import { ArrowLeft, MapPin, Shield, CheckCircle, HelpCircle, XCircle } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Shield, CheckCircle, HelpCircle, XCircle, Navigation } from 'lucide-react-native';
 import { useAuthStore } from '../../../store/authStore';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function AdminReportDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -189,6 +190,46 @@ export default function AdminReportDetailScreen() {
             <Text className="font-sans text-gray-800 dark:text-gray-200 leading-6 text-base">
               {report.description}
             </Text>
+
+            {/* Map Overview Section */}
+            {report.latitude && report.longitude ? (
+              <View className="mt-4 mb-2 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800">
+                <View className="h-36 w-full bg-gray-100 dark:bg-gray-900">
+                  <MapView
+                    style={{ width: '100%', height: '100%' }}
+                    initialRegion={{
+                      latitude: report.latitude,
+                      longitude: report.longitude,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                  >
+                    <Marker
+                      coordinate={{ latitude: report.latitude, longitude: report.longitude }}
+                    />
+                  </MapView>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    const url = Platform.select({
+                      ios: `maps:0,0?q=${report.latitude},${report.longitude}`,
+                      android: `geo:0,0?q=${report.latitude},${report.longitude}`,
+                      default: `https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}`,
+                    });
+                    Linking.openURL(url).catch((err) => console.error('An error occurred', err));
+                  }}
+                  className="bg-gray-50 dark:bg-gray-800/50 py-3 flex-row justify-center items-center border-t border-gray-100 dark:border-gray-800"
+                >
+                  <Navigation color="#6366f1" size={14} className="mr-1.5" />
+                  <Text className="font-sans font-bold text-xs text-indigo-500">Petunjuk Arah (Google Maps)</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
 
             <View className="h-px w-full bg-gray-100 dark:bg-gray-800 my-4" />
 
