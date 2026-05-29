@@ -26,12 +26,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true, // initial state before checking secure store
 
   login: async (token: string, user: UserProfile) => {
-    await SecureStore.setItemAsync('jwt_token', token);
+    try {
+      await SecureStore.setItemAsync('jwt_token', token);
+    } catch (e) {
+      console.error('Failed to set token in SecureStore', e);
+    }
     set({ user, token });
   },
 
   logout: async () => {
-    await SecureStore.deleteItemAsync('jwt_token');
+    try {
+      await SecureStore.deleteItemAsync('jwt_token');
+    } catch (e) {
+      console.error('Failed to delete token from SecureStore', e);
+    }
     set({ user: null, token: null });
   },
 
