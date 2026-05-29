@@ -9,7 +9,7 @@ import { LogOut, Award, User as UserIcon, Settings } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, fetchProfile } = useAuthStore();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -25,12 +25,13 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
+    fetchProfile();
     fetchLeaderboard();
   }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchLeaderboard();
+    await Promise.all([fetchProfile(), fetchLeaderboard()]);
     setRefreshing(false);
   };
 
