@@ -6,7 +6,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { BentoCard } from '../../../components/ui/BentoCard';
 import { ArrowLeft, MapPin, ThumbsUp, Navigation } from 'lucide-react-native';
 import { useAuthStore } from '../../../store/authStore';
-import MapView, { Marker } from 'react-native-maps';
+import { WebView } from 'react-native-webview';
 
 export default function ReportDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -118,33 +118,64 @@ export default function ReportDetailScreen() {
           {/* Map Overview Section */}
           {report.latitude && report.longitude ? (
             <View className="mt-4 mb-2 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800">
-              <View className="h-36 w-full bg-gray-100 dark:bg-gray-900">
-                <MapView
-                  style={{ width: '100%', height: '100%' }}
-                  initialRegion={{
-                    latitude: report.latitude,
-                    longitude: report.longitude,
-                    latitudeDelta: 0.005,
-                    longitudeDelta: 0.005,
+              <View className="h-44 w-full bg-gray-100 dark:bg-gray-900">
+                <WebView
+                  originWhitelist={['*']}
+                  source={{
+                    html: `
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                        <style>
+                          html, body, #map {
+                            height: 100%;
+                            margin: 0;
+                            padding: 0;
+                            background: #FAFAF9;
+                          }
+                          .leaflet-pane {
+                            z-index: 1 !important;
+                          }
+                          .leaflet-control-zoom {
+                            display: none !important;
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        <div id="map"></div>
+                        <script>
+                          var map = L.map('map', {
+                            zoomControl: false,
+                            attributionControl: false,
+                            scrollWheelZoom: false,
+                            doubleClickZoom: false,
+                            boxZoom: false,
+                            touchZoom: false
+                          }).setView([${report.latitude}, ${report.longitude}], 16);
+
+                          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19
+                          }).addTo(map);
+
+                          L.marker([${report.latitude}, ${report.longitude}]).addTo(map);
+                        </script>
+                      </body>
+                      </html>
+                    `
                   }}
+                  style={{ width: '100%', height: '100%', opacity: 0.99 }}
                   scrollEnabled={false}
-                  zoomEnabled={false}
-                  pitchEnabled={false}
-                  rotateEnabled={false}
-                >
-                  <Marker
-                    coordinate={{ latitude: report.latitude, longitude: report.longitude }}
-                  />
-                </MapView>
+                  nestedScrollEnabled={false}
+                />
               </View>
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() => {
-                  const url = Platform.select({
-                    ios: `maps:0,0?q=${report.latitude},${report.longitude}`,
-                    android: `geo:0,0?q=${report.latitude},${report.longitude}`,
-                    default: `https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}`,
-                  });
+                  // Universal Google Maps search URL that works perfectly on all devices (iOS, Android app/web) and never crashes
+                  const url = `https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}`;
                   Linking.openURL(url).catch((err) => console.error('An error occurred', err));
                 }}
                 className="bg-gray-50 dark:bg-gray-800/50 py-3 flex-row justify-center items-center border-t border-gray-100 dark:border-gray-800"
