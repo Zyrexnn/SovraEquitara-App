@@ -7,13 +7,14 @@ import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
-import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon } from 'lucide-react-native';
+import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon, Bookmark } from 'lucide-react-native';
 import { SuperAdminDashboardView } from '../superadmin';
 
 export default function AdminDashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [reports, setReports] = useState<any[]>([]);
+  const [savedReports, setSavedReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { colorScheme, toggleColorScheme } = useColorScheme();
@@ -22,6 +23,7 @@ export default function AdminDashboardScreen() {
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'SAVED'>('ALL');
 
   const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'super_admin';
 
@@ -38,15 +40,27 @@ export default function AdminDashboardScreen() {
     }
   };
 
+  const fetchSavedReports = async () => {
+    try {
+      const res = await apiClient.get('/admin/saved-reports');
+      if (res.data?.data) {
+        setSavedReports(res.data.data);
+      }
+    } catch (e) {
+      console.log('Failed to fetch saved reports', e);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchReports();
+    await Promise.all([fetchReports(), fetchSavedReports()]);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (!isSuperAdmin) {
       fetchReports();
+      fetchSavedReports();
     }
   }, [isSuperAdmin]);
 
@@ -63,7 +77,8 @@ export default function AdminDashboardScreen() {
   };
 
   // Filtered reports
-  const filteredReports = reports.filter(r => {
+  const currentReportsList = activeTab === 'ALL' ? reports : savedReports;
+  const filteredReports = currentReportsList.filter(r => {
     const matchesSearch = searchQuery
       ? r.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.location_detail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -433,6 +448,33 @@ export default function AdminDashboardScreen() {
         </View>
 
         {/* Search & Filter Section */}
+        {/* Tab Toggle: Semua Laporan vs Laporan Tersimpan */}
+        <View className="flex-row bg-white dark:bg-zen-cardDark p-1.5 rounded-2xl border border-zen-border dark:border-zen-borderDark mb-4 shadow-sm">
+          <TouchableOpacity
+            onPress={() => setActiveTab('ALL')}
+            activeOpacity={0.8}
+            className={`flex-1 py-3 rounded-xl items-center justify-center ${
+              activeTab === 'ALL' ? 'bg-indigo-500' : 'bg-transparent'
+            }`}
+          >
+            <Text className={`font-display font-bold text-xs ${activeTab === 'ALL' ? 'text-white' : 'text-gray-500'}`}>
+              Semua Aduan Warga
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab('SAVED')}
+            activeOpacity={0.8}
+            className={`flex-1 py-3 rounded-xl items-center justify-center flex-row ${
+              activeTab === 'SAVED' ? 'bg-indigo-500' : 'bg-transparent'
+            }`}
+          >
+            <Bookmark color={activeTab === 'SAVED' ? 'white' : '#6b7280'} size={12} className="mr-1.5" />
+            <Text className={`font-display font-bold text-xs ${activeTab === 'SAVED' ? 'text-white' : 'text-gray-500'}`}>
+              Tersimpan ({savedReports.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View className="mb-6 bg-white dark:bg-zen-cardDark p-4 rounded-[28px] border border-zen-border dark:border-zen-borderDark shadow-sm">
           <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3 border border-zen-border/30 dark:border-zen-borderDark/40">
             <Search color="#9ca3af" size={18} className="mr-2" />
@@ -514,7 +556,7 @@ export default function AdminDashboardScreen() {
                   </View>
                   <View className="flex-row justify-between items-center mt-1">
                     <Text className="font-sans text-gray-400 text-[10px] flex-1 mr-1" numberOfLines={1}>
-                      Oleh: {report.profile?.full_name || 'Warga'}
+                      Oleh: {report.profile?.full_name || report.user?.full_name || 'Warga'}
                     </Text>
                     <Text className="font-sans text-[10px] font-bold text-indigo-500">Moderasi →</Text>
                   </View>

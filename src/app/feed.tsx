@@ -84,7 +84,7 @@ export default function PublicFeedScreen() {
                           {report.category?.name || 'Laporan Umum'}
                         </Text>
                         <Text className="font-sans text-xs text-gray-500">
-                          Oleh {report.profile?.full_name || 'Anonim'}
+                          Oleh {report.profile?.full_name || report.user?.full_name || 'Anonim'}
                         </Text>
                       </View>
                       <StatusBadge status={report.status} />
