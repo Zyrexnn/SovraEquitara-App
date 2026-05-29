@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Linking, Platform, TextInput, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { apiClient, getImageUrl } from '../../../api/client';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { BentoCard } from '../../../components/ui/BentoCard';
@@ -52,15 +52,9 @@ export default function ReportDetailScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchReportDetails();
-    fetchComments();
-  }, [id]);
-
-  const fetchReportDetails = async () => {
+  const fetchReportDetails = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
-      // In a real app we'd fetch specific report by ID
-      // If endpoint isn't ready we can fetch all public and find by ID
       const res = await apiClient.get('/public-reports');
       if (res.data?.data) {
         const found = res.data.data.find((r: any) => r.id.toString() === id);
@@ -69,9 +63,25 @@ export default function ReportDetailScreen() {
     } catch (e) {
       console.log('Error fetching report', e);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchReportDetails(!report);
+      fetchComments();
+
+      const interval = setInterval(() => {
+        fetchReportDetails(false);
+        fetchComments();
+      }, 5000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, [id, !report])
+  );
 
   const handleUpvote = async () => {
     if (!report) return;

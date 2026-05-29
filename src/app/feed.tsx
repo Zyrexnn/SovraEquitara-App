@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { apiClient, getImageUrl } from '../api/client';
 import { BentoCard } from '../components/ui/BentoCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -12,7 +12,8 @@ export default function PublicFeedScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchReports = async () => {
+  const fetchReports = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const res = await apiClient.get('/public-reports?sort=recent');
       if (res.data?.data) {
@@ -21,19 +22,28 @@ export default function PublicFeedScreen() {
     } catch (e) {
       console.log('Error fetching reports', e);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchReports();
+    await fetchReports(false);
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReports(reports.length === 0); // Only show spinner on first load when feed is empty
+      const interval = setInterval(() => {
+        fetchReports(false);
+      }, 5000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, [reports.length])
+  );
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
