@@ -144,29 +144,35 @@ export default function DashboardScreen() {
             Selamat beraktivitas, {user?.full_name || 'Warga'}.
           </Text>
         </View>
-        <View className="flex-row items-center gap-3">
-          <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-4 py-2 rounded-full border border-emerald-500/10">
+        <View className="flex-row items-center gap-2.5">
+          <View className="bg-zen-surface dark:bg-zen-darkSurface px-3 py-1.5 rounded-full border border-zen-border dark:border-zen-borderDark">
+            <Text className="font-sans font-bold text-gray-500 dark:text-gray-400 text-[10px] uppercase">
+              {new Date().toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </Text>
+          </View>
+
+          <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-3.5 py-1.5 rounded-full border border-emerald-500/10">
             <Text className="font-display font-black text-emerald-600 dark:text-emerald-400 text-xs tracking-wider">{user?.points || 0} PTS</Text>
           </View>
           
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={toggleColorScheme} 
-            className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
+            className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
             {isDark ? (
-              <Sun color="#f59e0b" size={20} />
+              <Sun color="#f59e0b" size={18} />
             ) : (
-              <Moon color="#6366f1" size={20} />
+              <Moon color="#6366f1" size={18} />
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={() => router.push('/notifications' as any)} 
-            className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
+            className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
-            <Bell color="#10b981" size={20} />
+            <Bell color="#10b981" size={18} />
           </TouchableOpacity>
         </View>
       </View>
@@ -200,7 +206,7 @@ export default function DashboardScreen() {
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/map')}
           >
-            <BentoCard className="items-center py-6 px-4 h-40 justify-between border border-gray-100 dark:border-gray-800/80">
+            <BentoCard className="items-center py-6 px-4 h-40 justify-between shadow-none">
               <View className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-2xl">
                 <MapPin color={isDark ? '#60a5fa' : '#3b82f6'} size={24} />
               </View>
@@ -216,7 +222,7 @@ export default function DashboardScreen() {
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/chat')}
           >
-            <BentoCard className="items-center py-6 px-4 h-40 justify-between border border-gray-100 dark:border-gray-800/80">
+            <BentoCard className="items-center py-6 px-4 h-40 justify-between shadow-none">
               <View className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-2xl">
                 <MessageSquare color={isDark ? '#fbbf24' : '#f59e0b'} size={24} />
               </View>
@@ -231,7 +237,7 @@ export default function DashboardScreen() {
         {/* Small Stat Cards Grid */}
         <View className="flex-row gap-4 mb-5">
           <View className="flex-1">
-            <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-28 justify-between shadow-none">
+            <BentoCard className="bg-emerald-50/70 border border-emerald-100/10 dark:bg-emerald-950/20 dark:border-emerald-900/15 p-4 rounded-3xl h-28 justify-between shadow-none">
               <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                 <CheckCircle color="#10b981" size={16} />
               </View>
@@ -243,7 +249,7 @@ export default function DashboardScreen() {
           </View>
 
           <View className="flex-1">
-            <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-28 justify-between shadow-none">
+            <BentoCard className="bg-amber-50/70 border border-amber-100/10 dark:bg-amber-950/20 dark:border-amber-900/15 p-4 rounded-3xl h-28 justify-between shadow-none">
               <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                 <Clock color="#d97706" size={16} />
               </View>
@@ -257,7 +263,7 @@ export default function DashboardScreen() {
 
         {/* Warga Teladan Leaderboard Bento Box */}
         <View className="w-full mb-5">
-          <BentoCard className="border border-zen-border dark:border-zen-borderDark rounded-3xl p-5 shadow-sm">
+          <BentoCard className="rounded-3xl p-5 shadow-none">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Warga Teladan Kota</Text>
               <View className="bg-blue-500 px-2 py-0.5 rounded-md">
@@ -274,7 +280,19 @@ export default function DashboardScreen() {
                 {leaderboard.slice(0, 10).map((item, index) => (
                   <View key={item.id || index} className="flex-row items-center justify-between pb-2 border-b border-gray-50 dark:border-zinc-900/50">
                     <View className="flex-row items-center flex-1 mr-2">
-                      <Text className="font-display font-black text-gray-400 dark:text-zinc-600 text-xs w-6">{index + 1}</Text>
+                      <View className={`w-6 h-6 rounded-full items-center justify-center mr-2.5 ${
+                        index === 0 ? 'bg-amber-500/15' :
+                        index === 1 ? 'bg-blue-500/15' :
+                        index === 2 ? 'bg-emerald-500/15' : 'bg-transparent'
+                      }`}>
+                        <Text className={`font-display font-black text-xs ${
+                          index === 0 ? 'text-amber-600 dark:text-amber-400' :
+                          index === 1 ? 'text-blue-600 dark:text-blue-400' :
+                          index === 2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-zinc-600'
+                        }`}>
+                          {index + 1}
+                        </Text>
+                      </View>
                       <View className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/25 items-center justify-center mr-2.5 overflow-hidden border border-gray-100 dark:border-gray-800">
                         {item.avatar_url ? (
                           <Image source={{ uri: getImageUrl(item.avatar_url) }} className="w-full h-full" />
@@ -298,7 +316,7 @@ export default function DashboardScreen() {
 
         {/* Chart Card */}
         <View className="w-full mb-5">
-          <BentoCard className="h-60 p-5 border border-zen-border dark:border-zen-borderDark">
+          <BentoCard className="h-60 p-5 shadow-none">
             <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mb-3">Proporsi Status Laporan Saya</Text>
             {stats.total > 0 ? (
               <View className="flex-1 w-full bg-transparent">

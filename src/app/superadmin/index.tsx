@@ -86,7 +86,13 @@ export default function SuperAdminHub() {
           </View>
         </View>
         
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center gap-2.5">
+          <View className="bg-zen-surface dark:bg-zen-darkSurface px-3 py-1.5 rounded-full border border-zen-border dark:border-zen-borderDark">
+            <Text className="font-sans font-bold text-gray-500 dark:text-gray-400 text-[10px] uppercase">
+              {new Date().toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </Text>
+          </View>
+
           <View className="bg-amber-100 dark:bg-amber-950/40 px-3 py-1.5 rounded-full flex-row items-center border border-amber-200/20">
             <ShieldAlert color="#d97706" size={12} className="mr-1" />
             <Text className="font-sans font-black text-[#d97706] text-[9px] tracking-wider uppercase">SUPER_ADMIN</Text>
@@ -127,7 +133,7 @@ export default function SuperAdminHub() {
             <View className="flex-row gap-4 mb-4">
               {/* Total Laporan */}
               <View className="flex-1">
-                <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                   <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                     <FileText color="#6366f1" size={16} />
                   </View>
@@ -140,7 +146,7 @@ export default function SuperAdminHub() {
 
               {/* Pending Review */}
               <View className="flex-1">
-                <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <BentoCard className="bg-amber-50/70 border border-amber-100/10 dark:bg-amber-950/20 dark:border-amber-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                   <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                     <Clock color="#d97706" size={16} />
                   </View>
@@ -155,7 +161,7 @@ export default function SuperAdminHub() {
             <View className="flex-row gap-4">
               {/* Terverifikasi */}
               <View className="flex-1">
-                <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <BentoCard className="bg-emerald-50/70 border border-emerald-100/10 dark:bg-emerald-950/20 dark:border-emerald-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                   <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                     <CheckCircle color="#10b981" size={16} />
                   </View>
@@ -168,7 +174,7 @@ export default function SuperAdminHub() {
 
               {/* Terselesaikan */}
               <View className="flex-1">
-                <BentoCard className="bg-blue-50/70 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+                <BentoCard className="bg-blue-50/70 border border-blue-100/10 dark:bg-blue-950/20 dark:border-blue-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                   <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                     <CheckCircle color="#3b82f6" size={16} />
                   </View>
@@ -192,7 +198,7 @@ export default function SuperAdminHub() {
           onPress={() => router.push('/superadmin/admins' as any)}
           className="mb-4"
         >
-          <BentoCard className="flex-row items-center p-4 rounded-3xl border border-gray-100 dark:border-gray-800/80">
+          <BentoCard className="flex-row items-center p-4 rounded-3xl shadow-none">
             <View className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-2xl mr-4">
               <UserCheck color="#6366f1" size={22} />
             </View>
@@ -213,7 +219,7 @@ export default function SuperAdminHub() {
           onPress={() => router.push('/superadmin/users' as any)}
           className="mb-6"
         >
-          <BentoCard className="flex-row items-center p-4 rounded-3xl border border-gray-100 dark:border-gray-800/80">
+          <BentoCard className="flex-row items-center p-4 rounded-3xl shadow-none">
             <View className="p-3 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-2xl mr-4">
               <Users color="#10b981" size={22} />
             </View>
@@ -230,7 +236,7 @@ export default function SuperAdminHub() {
         </TouchableOpacity>
 
         {/* Security & Info */}
-        <BentoCard className="p-4 bg-gray-50/50 dark:bg-zen-cardBg border border-gray-100 dark:border-gray-800/85 rounded-3xl">
+        <BentoCard className="p-4 bg-gray-50/50 dark:bg-zen-cardDark border border-zen-border/30 dark:border-zen-borderDark/40 rounded-3xl shadow-none">
           <View className="flex-row items-center mb-2">
             <Shield color="#6366f1" size={14} className="mr-2" />
             <Text className="font-display font-bold text-gray-700 dark:text-gray-300 text-xs">

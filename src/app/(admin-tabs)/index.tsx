@@ -257,8 +257,14 @@ export default function AdminDashboardScreen() {
               Selamat bertugas, {user?.full_name || 'Admin'}.
             </Text>
           </View>
-          <View className="flex-row items-center gap-3">
-            <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-4 py-2 rounded-full border border-indigo-500/10 flex-row items-center">
+          <View className="flex-row items-center gap-2.5">
+            <View className="bg-zen-surface dark:bg-zen-darkSurface px-3 py-1.5 rounded-full border border-zen-border dark:border-zen-borderDark">
+              <Text className="font-sans font-bold text-gray-500 dark:text-gray-400 text-[10px] uppercase">
+                {new Date().toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+              </Text>
+            </View>
+
+            <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-3.5 py-1.5 rounded-full border border-indigo-500/10 flex-row items-center">
               <Shield color="#6366f1" size={12} className="mr-1.5" />
               <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
                 {user?.role || 'ADMIN'}
@@ -268,12 +274,12 @@ export default function AdminDashboardScreen() {
             <TouchableOpacity 
               activeOpacity={0.8}
               onPress={toggleColorScheme} 
-              className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
+              className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
             >
               {isDark ? (
-                <Sun color="#f59e0b" size={20} />
+                <Sun color="#f59e0b" size={18} />
               ) : (
-                <Moon color="#6366f1" size={20} />
+                <Moon color="#6366f1" size={18} />
               )}
             </TouchableOpacity>
           </View>
@@ -284,7 +290,7 @@ export default function AdminDashboardScreen() {
           <View className="flex-row gap-4 mb-4">
             {/* Total Laporan */}
             <View className="flex-1">
-              <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                 <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                   <FileText color="#6366f1" size={16} />
                 </View>
@@ -297,7 +303,7 @@ export default function AdminDashboardScreen() {
 
             {/* Pending Review */}
             <View className="flex-1">
-              <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <BentoCard className="bg-amber-50/70 border border-amber-100/10 dark:bg-amber-950/20 dark:border-amber-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                 <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                   <Clock color="#d97706" size={16} />
                 </View>
@@ -312,7 +318,7 @@ export default function AdminDashboardScreen() {
           <View className="flex-row gap-4">
             {/* Terverifikasi */}
             <View className="flex-1">
-              <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <BentoCard className="bg-emerald-50/70 border border-emerald-100/10 dark:bg-emerald-950/20 dark:border-emerald-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                 <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                   <CheckCircle color="#10b981" size={16} />
                 </View>
@@ -325,7 +331,7 @@ export default function AdminDashboardScreen() {
 
             {/* Terselesaikan */}
             <View className="flex-1">
-              <BentoCard className="bg-blue-50/70 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <BentoCard className="bg-blue-50/70 border border-blue-100/10 dark:bg-blue-950/20 dark:border-blue-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
                 <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
                   <CheckCircle color="#3b82f6" size={16} />
                 </View>
@@ -341,7 +347,7 @@ export default function AdminDashboardScreen() {
         {/* Grafik Tren & Spasial Analitis Kota */}
         {reports.length > 0 && (
           <View className="mb-6">
-            <BentoCard className="h-[490px] border border-gray-100 dark:border-gray-800/80 rounded-3xl p-5 shadow-sm">
+            <BentoCard className="h-[490px] rounded-3xl p-5 shadow-none">
               <Text className="font-display font-bold text-gray-900 dark:text-white text-base mb-4">Tren & Distribusi Aduan Wilayah</Text>
               <View className="flex-1 w-full bg-transparent">
                 <WebView
@@ -367,7 +373,7 @@ export default function AdminDashboardScreen() {
               onPress={() => router.push('/admin/broadcast' as any)}
               className="flex-1"
             >
-              <BentoCard className="bg-purple-50/70 border border-purple-100 dark:bg-purple-950/20 dark:border-purple-900/30 p-4 h-32 justify-between shadow-none rounded-3xl">
+              <BentoCard className="bg-purple-50/70 border border-purple-100/10 dark:bg-purple-950/20 dark:border-purple-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
                 <View className="p-2 bg-purple-500 rounded-xl self-start shadow-sm">
                   <Megaphone color="white" size={18} />
                 </View>
@@ -383,7 +389,7 @@ export default function AdminDashboardScreen() {
               onPress={() => router.push('/admin/helpdesk' as any)}
               className="flex-1"
             >
-              <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 h-32 justify-between shadow-none rounded-3xl">
+              <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
                 <View className="p-2 bg-indigo-500 rounded-xl self-start shadow-sm">
                   <MessageSquare color="white" size={18} />
                 </View>
@@ -400,7 +406,7 @@ export default function AdminDashboardScreen() {
             onPress={() => router.push('/admin/ai-assistant' as any)}
             className="w-full"
           >
-            <BentoCard className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-4 h-28 flex-row items-center justify-between shadow-none rounded-3xl">
+            <BentoCard className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100/10 dark:border-emerald-900/15 p-4 h-28 flex-row items-center justify-between shadow-none rounded-3xl">
               <View className="flex-row items-center flex-1 mr-3">
                 <View className="p-3 bg-emerald-500 rounded-2xl mr-4 shadow-sm">
                   <Sparkles color="white" size={22} />

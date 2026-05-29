@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { apiClient } from '../api/client';
 import { BentoCard } from '../components/ui/BentoCard';
 import { ArrowLeft, Bell, AlertTriangle, Info, ShieldAlert } from 'lucide-react-native';
@@ -10,6 +11,9 @@ export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#f3f4f6' : '#374151';
 
   const fetchNotifications = async () => {
     try {
@@ -50,12 +54,12 @@ export default function NotificationsScreen() {
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
       {/* Header */}
-      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardBg border-b border-gray-100 dark:border-gray-800 flex-row items-center">
+      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center">
         <TouchableOpacity 
           onPress={() => router.back()} 
           className="mr-4 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
         >
-          <ArrowLeft color="#374151" size={20} />
+          <ArrowLeft color={iconColor} size={20} />
         </TouchableOpacity>
         <View className="flex-1">
           <Text className="font-display text-xl font-bold text-gray-900 dark:text-white">Pemberitahuan</Text>
@@ -100,10 +104,10 @@ export default function NotificationsScreen() {
                   className="mb-4"
                 >
                   <BentoCard 
-                    className={`p-4 border ${
+                    className={`p-4 border shadow-none ${
                       isEmergency 
                         ? 'bg-red-50/70 border-red-200 dark:bg-red-950/20 dark:border-red-900/50' 
-                        : 'bg-white dark:bg-zen-cardBg border-gray-100 dark:border-gray-800'
+                        : 'bg-white dark:bg-zen-cardDark border-zen-border dark:border-zen-borderDark'
                     }`}
                   >
                     <View className="flex-row items-start mb-2">
@@ -138,7 +142,7 @@ export default function NotificationsScreen() {
                     </Text>
 
                     {notif.action_url && (
-                      <View className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex-row justify-end pl-11">
+                      <View className="mt-3 pt-3 border-t border-zen-border dark:border-zen-borderDark flex-row justify-end pl-11">
                         <Text className={`font-sans font-bold text-[10px] ${
                           isEmergency ? 'text-red-500' : 'text-zen-accent'
                         }`}>
