@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { apiClient } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { WebView } from 'react-native-webview';
-import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell } from 'lucide-react-native';
+import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock } from 'lucide-react-native';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();
@@ -187,20 +187,25 @@ export default function DashboardScreen() {
 
         {/* Small Stat Cards */}
         <View className="w-[48%] mb-4">
-          <BentoCard>
-            <Text className="font-sans text-gray-500 text-sm">Laporan Selesai</Text>
-            <View className="flex-row items-end mt-2">
-              <Text className="font-display text-3xl font-bold text-zen-accent">{stats.resolved}</Text>
-              <CheckCircle color="#10b981" size={16} className="ml-2 mb-2" />
+          <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-28 justify-between shadow-none">
+            <View className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg self-start shadow-sm">
+              <CheckCircle color="#10b981" size={14} />
+            </View>
+            <View>
+              <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.resolved}</Text>
+              <Text className="font-sans text-[9px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Laporan Selesai</Text>
             </View>
           </BentoCard>
         </View>
 
         <View className="w-[48%] mb-4">
-          <BentoCard>
-            <Text className="font-sans text-gray-500 text-sm">Sedang Diproses</Text>
-            <View className="flex-row items-end mt-2">
-              <Text className="font-display text-3xl font-bold text-status-pending">{stats.pending}</Text>
+          <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-28 justify-between shadow-none">
+            <View className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg self-start shadow-sm">
+              <Clock color="#d97706" size={14} />
+            </View>
+            <View>
+              <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
+              <Text className="font-sans text-[9px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Sedang Diproses</Text>
             </View>
           </BentoCard>
         </View>

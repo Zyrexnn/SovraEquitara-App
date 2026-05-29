@@ -263,44 +263,56 @@ export default function AdminDashboardScreen() {
         </View>
 
         {/* Stats Bento Grid */}
-        <View className="flex-row flex-wrap justify-between mb-6">
+        <View className="flex-row flex-wrap justify-between mb-4">
+          {/* Total Laporan */}
           <View className="w-[48%] mb-4">
-            <BentoCard className="bg-indigo-500 justify-between py-6">
-              <View className="flex-row justify-between items-center">
-                <Text className="font-sans text-indigo-100 text-xs font-bold uppercase tracking-wider">Total Laporan</Text>
-                <FileText color="white" size={16} />
+            <BentoCard className="bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                <FileText color="#6366f1" size={16} />
               </View>
-              <Text className="font-display text-3xl font-bold text-white mt-2">{stats.total}</Text>
+              <View>
+                <Text className="font-display text-2xl font-black text-indigo-600 dark:text-indigo-400">{stats.total}</Text>
+                <Text className="font-sans text-[10px] font-bold text-indigo-700/80 dark:text-indigo-300/85 uppercase tracking-wider mt-0.5">Total Laporan</Text>
+              </View>
             </BentoCard>
           </View>
 
+          {/* Pending Review */}
           <View className="w-[48%] mb-4">
-            <BentoCard className="bg-amber-500 justify-between py-6">
-              <View className="flex-row justify-between items-center">
-                <Text className="font-sans text-amber-100 text-xs font-bold uppercase tracking-wider">Pending</Text>
-                <Clock color="white" size={16} />
+            <BentoCard className="bg-amber-50/70 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                <Clock color="#d97706" size={16} />
               </View>
-              <Text className="font-display text-3xl font-bold text-white mt-2">{stats.pending}</Text>
+              <View>
+                <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
+                <Text className="font-sans text-[10px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Pending</Text>
+              </View>
             </BentoCard>
           </View>
 
+          {/* Terverifikasi */}
           <View className="w-[48%] mb-4">
-            <BentoCard className="bg-emerald-500 justify-between py-6">
-              <View className="flex-row justify-between items-center">
-                <Text className="font-sans text-emerald-100 text-xs font-bold uppercase tracking-wider">Terverifikasi</Text>
-                <CheckCircle color="white" size={16} />
+            <BentoCard className="bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                <CheckCircle color="#10b981" size={16} />
               </View>
-              <Text className="font-display text-3xl font-bold text-white mt-2">{stats.verified}</Text>
+              <View>
+                <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.verified}</Text>
+                <Text className="font-sans text-[10px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Terverifikasi</Text>
+              </View>
             </BentoCard>
           </View>
 
+          {/* Terselesaikan */}
           <View className="w-[48%] mb-4">
-            <BentoCard className="bg-blue-500 justify-between py-6">
-              <View className="flex-row justify-between items-center">
-                <Text className="font-sans text-blue-100 text-xs font-bold uppercase tracking-wider">Selesai</Text>
-                <CheckCircle color="white" size={16} />
+            <BentoCard className="bg-blue-50/70 border border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/30 p-4 rounded-3xl h-32 justify-between shadow-none">
+              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                <CheckCircle color="#3b82f6" size={16} />
               </View>
-              <Text className="font-display text-3xl font-bold text-white mt-2">{stats.resolved}</Text>
+              <View>
+                <Text className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">{stats.resolved}</Text>
+                <Text className="font-sans text-[10px] font-bold text-blue-700/80 dark:text-blue-300/85 uppercase tracking-wider mt-0.5">Selesai</Text>
+              </View>
             </BentoCard>
           </View>
         </View>
