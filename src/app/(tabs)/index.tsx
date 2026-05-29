@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
-import { apiClient } from '../../api/client';
+import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { WebView } from 'react-native-webview';
 import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock, Sun, Moon } from 'lucide-react-native';
@@ -12,6 +12,7 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [stats, setStats] = useState({ pending: 0, resolved: 0, total: 0 });
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -29,14 +30,28 @@ export default function DashboardScreen() {
     }
   };
 
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await apiClient.get('/leaderboard');
+      if (res.data?.data) {
+        setLeaderboard(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setLeaderboard(res.data);
+      }
+    } catch (e) {
+      console.log('Failed to fetch leaderboard', e);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchStats();
+    await Promise.all([fetchStats(), fetchLeaderboard()]);
     setRefreshing(false);
   };
 
   useEffect(() => {
     fetchStats();
+    fetchLeaderboard();
   }, []);
 
   const verifiedCount = Math.max(0, stats.total - stats.pending - stats.resolved);
@@ -122,9 +137,11 @@ export default function DashboardScreen() {
       {/* Welcome Header */}
       <View className="mb-8 flex-row justify-between items-center">
         <View className="flex-1 mr-3">
-          <Text className="font-sans text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Selamat Datang</Text>
-          <Text className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1" numberOfLines={1}>
-            {user?.full_name || 'Warga'}
+          <Text className="font-display text-3xl font-black text-gray-900 dark:text-white">
+            Suara <Text className="text-emerald-500 dark:text-emerald-400">Warga</Text>
+          </Text>
+          <Text className="font-sans text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
+            Selamat beraktivitas, {user?.full_name || 'Warga'}.
           </Text>
         </View>
         <View className="flex-row items-center gap-3">
@@ -135,7 +152,7 @@ export default function DashboardScreen() {
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={toggleColorScheme} 
-            className="p-3 bg-white dark:bg-zen-cardBg rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+            className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
             {isDark ? (
               <Sun color="#f59e0b" size={20} />
@@ -147,7 +164,7 @@ export default function DashboardScreen() {
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={() => router.push('/notifications' as any)} 
-            className="p-3 bg-white dark:bg-zen-cardBg rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+            className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
             <Bell color="#10b981" size={20} />
           </TouchableOpacity>
@@ -238,9 +255,50 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Warga Teladan Leaderboard Bento Box */}
+        <View className="w-full mb-5">
+          <BentoCard className="border border-zen-border dark:border-zen-borderDark rounded-3xl p-5 shadow-sm">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Warga Teladan Kota</Text>
+              <View className="bg-blue-500 px-2 py-0.5 rounded-md">
+                <Text className="font-sans font-black text-[9px] text-white tracking-wider">TOP 10</Text>
+              </View>
+            </View>
+            
+            {leaderboard.length === 0 ? (
+              <View className="py-6 items-center">
+                <ActivityIndicator size="small" color="#10b981" />
+              </View>
+            ) : (
+              <View className="gap-3.5">
+                {leaderboard.slice(0, 10).map((item, index) => (
+                  <View key={item.id || index} className="flex-row items-center justify-between pb-2 border-b border-gray-50 dark:border-zinc-900/50">
+                    <View className="flex-row items-center flex-1 mr-2">
+                      <Text className="font-display font-black text-gray-400 dark:text-zinc-600 text-xs w-6">{index + 1}</Text>
+                      <View className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/25 items-center justify-center mr-2.5 overflow-hidden border border-gray-100 dark:border-gray-800">
+                        {item.avatar_url ? (
+                          <Image source={{ uri: getImageUrl(item.avatar_url) }} className="w-full h-full" />
+                        ) : (
+                          <User color="#10b981" size={14} />
+                        )}
+                      </View>
+                      <Text className="font-sans text-xs font-bold text-gray-700 dark:text-gray-200 flex-1" numberOfLines={1}>
+                        {item.full_name}
+                      </Text>
+                    </View>
+                    <View className="bg-amber-50 dark:bg-amber-950/20 px-2.5 py-0.5 rounded-full border border-amber-100/10">
+                      <Text className="font-sans font-black text-[9px] text-amber-700 dark:text-amber-400">{item.points || 0} PTS</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </BentoCard>
+        </View>
+
         {/* Chart Card */}
         <View className="w-full mb-5">
-          <BentoCard className="h-60 p-5 border border-gray-100 dark:border-gray-800">
+          <BentoCard className="h-60 p-5 border border-zen-border dark:border-zen-borderDark">
             <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mb-3">Proporsi Status Laporan Saya</Text>
             {stats.total > 0 ? (
               <View className="flex-1 w-full bg-transparent">

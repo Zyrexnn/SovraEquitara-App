@@ -250,31 +250,33 @@ export default function AdminDashboardScreen() {
         {/* Header */}
         <View className="mb-8 flex-row justify-between items-center">
           <View className="flex-1 mr-3">
-            <Text className="font-sans text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Konsol Utama</Text>
-            <Text className="font-display text-3xl font-black text-gray-900 dark:text-white mt-1" numberOfLines={1}>
-              {user?.full_name || 'Admin'}
+            <Text className="font-display text-3xl font-black text-gray-900 dark:text-white">
+              Konsol <Text className="text-indigo-500 dark:text-indigo-400">Staf</Text>
+            </Text>
+            <Text className="font-sans text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
+              Selamat bertugas, {user?.full_name || 'Admin'}.
             </Text>
           </View>
-        <View className="flex-row items-center gap-3">
-          <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-4 py-2 rounded-full border border-indigo-500/10 flex-row items-center">
-            <Shield color="#6366f1" size={12} className="mr-1.5" />
-            <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
-              {user?.role || 'ADMIN'}
-            </Text>
-          </View>
+          <View className="flex-row items-center gap-3">
+            <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-4 py-2 rounded-full border border-indigo-500/10 flex-row items-center">
+              <Shield color="#6366f1" size={12} className="mr-1.5" />
+              <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
+                {user?.role || 'ADMIN'}
+              </Text>
+            </View>
 
-          <TouchableOpacity 
-            activeOpacity={0.8}
-            onPress={toggleColorScheme} 
-            className="p-3 bg-white dark:bg-zen-cardBg rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
-          >
-            {isDark ? (
-              <Sun color="#f59e0b" size={20} />
-            ) : (
-              <Moon color="#6366f1" size={20} />
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              onPress={toggleColorScheme} 
+              className="p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
+            >
+              {isDark ? (
+                <Sun color="#f59e0b" size={20} />
+              ) : (
+                <Moon color="#6366f1" size={20} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Stats Bento Grid */}
@@ -416,8 +418,8 @@ export default function AdminDashboardScreen() {
         </View>
 
         {/* Search & Filter Section */}
-        <View className="mb-6 bg-white dark:bg-zen-cardBg p-4 rounded-[28px] border border-gray-100 dark:border-gray-800/80 shadow-sm">
-          <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3 border border-gray-100/50 dark:border-gray-800/50">
+        <View className="mb-6 bg-white dark:bg-zen-cardDark p-4 rounded-[28px] border border-zen-border dark:border-zen-borderDark shadow-sm">
+          <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3 border border-zen-border/30 dark:border-zen-borderDark/40">
             <Search color="#9ca3af" size={18} className="mr-2" />
             <TextInput
               placeholder="Cari laporan..."
@@ -436,7 +438,7 @@ export default function AdminDashboardScreen() {
                 className={`px-4 py-2 rounded-xl mr-2 flex-row items-center border ${
                   statusFilter === status
                     ? 'bg-indigo-500 border-indigo-500'
-                    : 'bg-gray-50 dark:bg-gray-800 border-gray-100/50 dark:border-gray-800'
+                    : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
                 }`}
               >
                 <Text 

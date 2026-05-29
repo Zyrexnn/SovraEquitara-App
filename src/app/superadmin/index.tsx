@@ -68,7 +68,7 @@ export default function SuperAdminHub() {
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
       {/* Header */}
-      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardBg border-b border-gray-100 dark:border-gray-800/80 flex-row items-center justify-between">
+      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center justify-between">
         <View className="flex-row items-center flex-1">
           <TouchableOpacity 
             onPress={() => router.replace('/(admin-tabs)/profile' as any)} 
@@ -77,8 +77,12 @@ export default function SuperAdminHub() {
             <ArrowLeft color={iconColor} size={18} />
           </TouchableOpacity>
           <View>
-            <Text className="font-sans text-[10px] text-gray-500 font-bold uppercase tracking-wider">Konsol Utama</Text>
-            <Text className="font-display text-2xl font-black text-gray-900 dark:text-white">Super Admin</Text>
+            <Text className="font-display text-xl font-black text-gray-900 dark:text-white">
+              Konsol <Text className="text-amber-500 dark:text-amber-400">Utama</Text>
+            </Text>
+            <Text className="font-sans text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+              Selamat bertugas, Super Admin.
+            </Text>
           </View>
         </View>
         
@@ -104,7 +108,7 @@ export default function SuperAdminHub() {
             onPress={() => router.push('/profile/edit' as any)}
             className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full"
           >
-            <Settings color={isDark ? '#d1d5db' : '#4b5563'} size={18} />
+            <Settings color={iconColor} size={18} />
           </TouchableOpacity>
         </View>
       </View>

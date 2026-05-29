@@ -11,12 +11,17 @@ import {
   TextInput 
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { ZenButton } from '../../components/ui/ZenButton';
 import { ArrowLeft, Search, User, Mail, Calendar, Trophy, ChevronRight, X, BarChart3 } from 'lucide-react-native';
 
 export default function UsersDirectoryScreen() {
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#f3f4f6' : '#374151';
 
   const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +37,7 @@ export default function UsersDirectoryScreen() {
     try {
       setIsLoading(true);
       // Backend api endpoint to search profiles
-      const res = await apiClient.get(`/profiles?search=${encodeURIComponent(query)}&role=citizen`);
+      const res = await apiClient.get(`/profiles?search=${encodeURIComponent(query)}&role=USER`);
       if (res.data?.data) {
         setUsers(res.data.data);
       } else if (Array.isArray(res.data)) {
@@ -82,12 +87,12 @@ export default function UsersDirectoryScreen() {
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
       {/* Header */}
-      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardBg border-b border-gray-100 dark:border-gray-800 flex-row items-center">
+      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center">
         <TouchableOpacity 
           onPress={() => router.back()} 
           className="mr-4 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
         >
-          <ArrowLeft color="#374151" size={20} />
+          <ArrowLeft color={iconColor} size={20} />
         </TouchableOpacity>
         <View className="flex-1">
           <Text className="font-display text-xl font-bold text-gray-900 dark:text-white">Direktori Warga</Text>
@@ -100,7 +105,7 @@ export default function UsersDirectoryScreen() {
 
       {/* Search Bar */}
       <View className="p-4 flex-row items-center">
-        <View className="flex-1 flex-row items-center bg-white dark:bg-zen-cardBg px-4 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 mr-2 shadow-sm">
+        <View className="flex-1 flex-row items-center bg-white dark:bg-zen-cardDark px-4 py-3 rounded-2xl border border-zen-border dark:border-zen-borderDark mr-2 shadow-sm">
           <Search color="#9ca3af" size={16} className="mr-2" />
           <TextInput
             placeholder="Cari warga berdasarkan nama..."
@@ -190,7 +195,7 @@ export default function UsersDirectoryScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-white dark:bg-zen-cardBg rounded-t-[32px] p-6 pb-12 border-t border-gray-100 dark:border-gray-800 shadow-2xl">
+          <View className="bg-white dark:bg-zen-cardDark rounded-t-[32px] p-6 pb-12 border-t border-zen-border dark:border-zen-borderDark shadow-2xl">
             {/* Modal Header */}
             <View className="flex-row justify-between items-center mb-6">
               <View className="flex-row items-center">
@@ -201,7 +206,7 @@ export default function UsersDirectoryScreen() {
                 onPress={() => setModalVisible(false)}
                 className="p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
               >
-                <X color="#374151" size={18} />
+                <X color={iconColor} size={18} />
               </TouchableOpacity>
             </View>
 

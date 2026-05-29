@@ -8,8 +8,17 @@ module.exports = {
         zen: {
           bg: "#FAFAF9",
           darkBg: "#000000",
-          surface: "#FFFFFF",
+          card: "#FFFFFF",
+          cardDark: "#0B0B0F",
+          cardBg: "#FFFFFF",
+          surface: "#f5f5f5",
           darkSurface: "#111111",
+          border: "#f0f0f0",
+          borderDark: "#1E293B",
+          text: "#1a1a1a",
+          textDark: "#ffffff",
+          muted: "#a3a3a3",
+          mutedDark: "#64748b",
           accent: "#10b981", // Emerald 500
           accentHover: "#059669", // Emerald 600
         },
