@@ -7,12 +7,15 @@ import {
   ActivityIndicator, 
   RefreshControl,
   Alert,
-  Animated
+  Animated,
+  TextInput,
+  Image
 } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
-import { apiClient } from '../../api/client';
+import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { 
   ArrowLeft, 
   ShieldAlert, 
@@ -30,7 +33,8 @@ import {
   HardDrive,
   Download,
   Lock,
-  Activity
+  Activity,
+  Search
 } from 'lucide-react-native';
 
 // Indikator Titik Hijau Berkedip/Pulsing Native
@@ -72,10 +76,15 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#f3f4f6' : '#374151';
   
+  const [reports, setReports] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, verified: 0, resolved: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeString, setTimeString] = useState('');
+
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'VALID' | 'RESOLVED'>('ALL');
 
   // 1. Dynamic Local Time Clock (Web-Parity)
   useEffect(() => {
@@ -94,17 +103,18 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch system stats
+  // 2. Fetch system stats & reports list
   const fetchStatsAndReports = async () => {
     try {
       const res = await apiClient.get('/admin/reports');
       if (res.data?.data) {
-        const reports = res.data.data;
+        const reportsData = res.data.data;
+        setReports(reportsData);
         setStats({
-          total: reports.length,
-          pending: reports.filter((r: any) => r.status === 'PENDING').length,
-          verified: reports.filter((r: any) => r.status === 'VALID').length,
-          resolved: reports.filter((r: any) => r.status === 'RESOLVED').length,
+          total: reportsData.length,
+          pending: reportsData.filter((r: any) => r.status === 'PENDING').length,
+          verified: reportsData.filter((r: any) => r.status === 'VALID').length,
+          resolved: reportsData.filter((r: any) => r.status === 'RESOLVED').length,
         });
       }
     } catch (e) {
@@ -124,7 +134,27 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
     fetchStatsAndReports();
   };
 
-  // 3. Quick Action Handlers
+  // 3. Filtering & Sorting Logic
+  const filteredReports = reports.filter(r => {
+    const matchesSearch = searchQuery
+      ? r.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.location_detail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+      
+    const matchesStatus = statusFilter === 'ALL' ? true : r.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort: show pending and newer ones first
+  const sortedReports = [...filteredReports].sort((a, b) => {
+    if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+    if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  // 4. Quick Action Handlers
   const handleBackupDB = () => {
     Alert.alert(
       "Backup Database",
@@ -385,6 +415,103 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
                 </BentoCard>
               </TouchableOpacity>
             </View>
+
+            {/* Search & Filter Section */}
+            <View className="mb-6 bg-white dark:bg-zen-cardDark p-4 rounded-[24px] border border-zen-border dark:border-zen-borderDark shadow-sm">
+              <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-xl mb-3 border border-zen-border/30 dark:border-zen-borderDark/40">
+                <Search color="#9ca3af" size={16} className="mr-2" />
+                <TextInput
+                  placeholder="Cari aduan atau nama warga..."
+                  placeholderTextColor="#9ca3af"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  className="flex-1 font-sans text-xs text-gray-900 dark:text-white py-0.5"
+                />
+              </View>
+              
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {(['ALL', 'PENDING', 'VALID', 'RESOLVED'] as const).map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    onPress={() => setStatusFilter(status)}
+                    className={`px-3.5 py-1.5 rounded-lg mr-2 flex-row items-center border ${
+                      statusFilter === status
+                        ? 'bg-indigo-500 border-indigo-500'
+                        : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
+                    }`}
+                  >
+                    <Text 
+                      className={`font-sans font-bold text-[9px] ${
+                        statusFilter === status
+                          ? 'text-white'
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
+                      {status === 'ALL' ? 'Semua Laporan' : status === 'VALID' ? 'DIPROSES' : status}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Reports List */}
+            <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pl-1">
+              Daftar Aduan Terpantau ({sortedReports.length})
+            </Text>
+
+            {sortedReports.length === 0 ? (
+              <View className="py-12 items-center bg-white dark:bg-zen-cardDark rounded-[24px] border border-zen-border dark:border-zen-borderDark mb-6">
+                <Text className="font-sans text-stone-400 dark:text-stone-500 text-xs">Tidak ada aduan yang sesuai filter.</Text>
+              </View>
+            ) : (
+              <View className="mb-6">
+                {sortedReports.map((report) => (
+                  <TouchableOpacity 
+                    key={report.id} 
+                    activeOpacity={0.9}
+                    onPress={() => router.push(`/admin/report/${report.id}` as any)}
+                    className="mb-3"
+                  >
+                    <BentoCard className="p-0 overflow-hidden shadow-none flex-row h-[100px] border border-gray-100 dark:border-gray-800/80 rounded-[20px]">
+                      {report.image_urls && report.image_urls.length > 0 ? (
+                        <Image 
+                          source={{ uri: getImageUrl(report.image_urls[0]) }} 
+                          className="w-24 h-full bg-stone-100" 
+                        />
+                      ) : report.image_url ? (
+                        <Image 
+                          source={{ uri: getImageUrl(report.image_url) }} 
+                          className="w-24 h-full bg-stone-100" 
+                        />
+                      ) : (
+                        <View className="w-24 h-full bg-gray-50 dark:bg-gray-800/60 items-center justify-center border-r border-zen-border/20">
+                          <Text className="font-sans text-gray-400 dark:text-stone-600 text-[9px]">No Photo</Text>
+                        </View>
+                      )}
+                      <View className="flex-1 p-3 justify-between">
+                        <View>
+                          <View className="flex-row justify-between items-center mb-1">
+                            <Text className="font-display font-bold text-gray-900 dark:text-white text-xs flex-1 mr-1.5" numberOfLines={1}>
+                              {report.category?.name || 'Laporan Umum'}
+                            </Text>
+                            <StatusBadge status={report.status} />
+                          </View>
+                          <Text className="font-sans text-gray-500 dark:text-stone-400 text-[10px]" numberOfLines={2}>
+                            {report.description}
+                          </Text>
+                        </View>
+                        <View className="flex-row justify-between items-center mt-1">
+                          <Text className="font-sans text-stone-400 dark:text-stone-500 text-[8px] flex-1 mr-1" numberOfLines={1}>
+                            Oleh: {report.profile?.full_name || 'Warga'}
+                          </Text>
+                          <Text className="font-sans text-[8px] font-bold text-indigo-500">Moderasi →</Text>
+                        </View>
+                      </View>
+                    </BentoCard>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             {/* Security Box */}
             <BentoCard className="p-4 bg-gray-50/50 dark:bg-zen-cardDark border border-zen-border/30 dark:border-zen-borderDark/40 rounded-[24px] shadow-none flex-row items-start">
