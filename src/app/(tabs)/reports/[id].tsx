@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { apiClient } from '../../../api/client';
+import { apiClient, getImageUrl } from '../../../api/client';
 import { StatusBadge } from '../../../components/ui/StatusBadge';
 import { BentoCard } from '../../../components/ui/BentoCard';
 import { ArrowLeft, MapPin, ThumbsUp } from 'lucide-react-native';
@@ -68,8 +68,11 @@ export default function ReportDetailScreen() {
   return (
     <ScrollView className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
       <View className="relative">
-        {report.image_url ? (
-          <Image source={{ uri: report.image_url }} className="w-full h-64 bg-gray-200" />
+        {(report.image_urls && report.image_urls.length > 0) || report.image_url ? (
+          <Image 
+            source={{ uri: getImageUrl(report.image_urls?.[0] || report.image_url) }} 
+            className="w-full h-64 bg-gray-200" 
+          />
         ) : (
           <View className="w-full h-64 bg-gray-200 dark:bg-gray-800 items-center justify-center">
             <Text className="font-sans text-gray-400">Tidak ada foto</Text>

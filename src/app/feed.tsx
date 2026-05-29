@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { apiClient } from '../api/client';
+import { apiClient, getImageUrl } from '../api/client';
 import { BentoCard } from '../components/ui/BentoCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ArrowLeft, MapPin, ThumbsUp } from 'lucide-react-native';
@@ -67,8 +67,11 @@ export default function PublicFeedScreen() {
                 className="mb-4"
               >
                 <BentoCard className="p-0 overflow-hidden shadow-sm">
-                  {report.image_urls && report.image_urls.length > 0 ? (
-                    <Image source={{ uri: report.image_urls[0] }} className="w-full h-40 bg-gray-200" />
+                  {(report.image_urls && report.image_urls.length > 0) || report.image_url ? (
+                    <Image 
+                      source={{ uri: getImageUrl(report.image_urls?.[0] || report.image_url) }} 
+                      className="w-full h-40 bg-gray-200" 
+                    />
                   ) : (
                     <View className="w-full h-40 bg-gray-100 dark:bg-gray-800 items-center justify-center">
                       <Text className="font-sans text-gray-400">Tidak ada foto</Text>
