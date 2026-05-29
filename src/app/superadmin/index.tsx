@@ -62,7 +62,11 @@ const PulsingDot = () => {
   );
 };
 
-export default function SuperAdminHub() {
+interface SuperAdminDashboardViewProps {
+  isStandalone?: boolean;
+}
+
+export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDashboardViewProps) {
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -170,13 +174,15 @@ export default function SuperAdminHub() {
       {/* Header */}
       <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center justify-between shadow-sm">
         <View className="flex-row items-center flex-1 mr-2">
-          <TouchableOpacity 
-            onPress={() => router.replace('/(admin-tabs)/profile' as any)} 
-            className="mr-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
-            activeOpacity={0.8}
-          >
-            <ArrowLeft color={iconColor} size={18} />
-          </TouchableOpacity>
+          {isStandalone && (
+            <TouchableOpacity 
+              onPress={() => router.replace('/(admin-tabs)/profile' as any)} 
+              className="mr-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
+              activeOpacity={0.8}
+            >
+              <ArrowLeft color={iconColor} size={18} />
+            </TouchableOpacity>
+          )}
           <View className="flex-1">
             <Text className="font-display text-lg font-black text-gray-900 dark:text-white" numberOfLines={1}>
               Konsol <Text className="text-indigo-500 dark:text-indigo-400">Super</Text>
@@ -401,4 +407,8 @@ export default function SuperAdminHub() {
       </ScrollView>
     </View>
   );
+}
+
+export default function SuperAdminHub() {
+  return <SuperAdminDashboardView isStandalone={true} />;
 }

@@ -8,10 +8,17 @@ import { BentoCard } from '../../components/ui/BentoCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
 import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon } from 'lucide-react-native';
+import { SuperAdminDashboardView } from '../superadmin';
 
 export default function AdminDashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
+  
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'super_admin';
+  
+  if (isSuperAdmin) {
+    return <SuperAdminDashboardView isStandalone={false} />;
+  }
   const [reports, setReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
