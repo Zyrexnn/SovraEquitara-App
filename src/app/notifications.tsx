@@ -1,19 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { apiClient } from '../api/client';
 import { BentoCard } from '../components/ui/BentoCard';
-import { ArrowLeft, Bell, AlertTriangle, Info, ShieldAlert } from 'lucide-react-native';
+import { ArrowLeft, Bell, AlertTriangle, Info, ShieldAlert, X, Trash2 } from 'lucide-react-native';
+import { useAuthStore } from '../store/authStore';
+import * as SecureStore from 'expo-secure-store';
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#f3f4f6' : '#374151';
+
+  const loadHiddenNotifications = async () => {
+    try {
+      const stored = await SecureStore.getItemAsync('hidden_notifications');
+      if (stored) {
+        setHiddenIds(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.log('Failed to load hidden notifications', e);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -31,12 +46,50 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleHideLocal = async (id: string) => {
+    try {
+      const updated = [...hiddenIds, id];
+      setHiddenIds(updated);
+      await SecureStore.setItemAsync('hidden_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.log('Failed to hide notification locally', e);
+    }
+  };
+
+  const handleGlobalDelete = (id: string) => {
+    Alert.alert(
+      'Hapus Pengumuman Global',
+      'Apakah Anda yakin ingin menghapus pengumuman ini secara permanen dari seluruh sistem untuk semua pengguna?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus Permanen',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsLoading(true);
+              await apiClient.delete(`/admin/notifications/${id}`);
+              Alert.alert('Sukses', 'Pengumuman berhasil dihapus secara permanen.');
+              fetchNotifications();
+            } catch (e: any) {
+              console.log('Failed to delete notification globally', e);
+              Alert.alert('Gagal', e.response?.data?.error || 'Gagal menghapus pengumuman.');
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchNotifications();
   };
 
   useEffect(() => {
+    loadHiddenNotifications();
     fetchNotifications();
   }, []);
 
@@ -50,6 +103,8 @@ export default function NotificationsScreen() {
       }
     }
   };
+
+  const visibleNotifications = notifications.filter(n => !hiddenIds.includes(n.id));
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
@@ -80,14 +135,14 @@ export default function NotificationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          {notifications.length === 0 ? (
+          {visibleNotifications.length === 0 ? (
             <View className="py-20 items-center justify-center">
               <Bell color="#9ca3af" size={48} className="opacity-40 mb-3" />
               <Text className="font-sans font-bold text-gray-400 text-center">Belum ada pengumuman hari ini.</Text>
               <Text className="font-sans text-xs text-gray-400 text-center mt-1">Anda akan menerima siaran langsung jika ada berita wilayah.</Text>
             </View>
           ) : (
-            notifications.map((notif) => {
+            visibleNotifications.map((notif) => {
               const isEmergency = notif.type === 'EMERGENCY' || notif.type === 'WARNING';
               const dateStr = new Date(notif.created_at).toLocaleDateString('id-ID', {
                 day: 'numeric',
@@ -95,6 +150,9 @@ export default function NotificationsScreen() {
                 hour: '2-digit',
                 minute: '2-digit'
               });
+
+              const userRole = user?.role?.toLowerCase() || '';
+              const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole === 'superadmin';
 
               return (
                 <TouchableOpacity
@@ -104,13 +162,36 @@ export default function NotificationsScreen() {
                   className="mb-4"
                 >
                   <BentoCard 
-                    className={`p-4 border shadow-none ${
+                    className={`p-4 border shadow-none relative ${
                       isEmergency 
                         ? 'bg-red-50/70 border-red-200 dark:bg-red-950/20 dark:border-red-900/50' 
                         : 'bg-white dark:bg-zen-cardDark border-zen-border dark:border-zen-borderDark'
                     }`}
                   >
-                    <View className="flex-row items-start mb-2">
+                    {/* Action buttons (Hide locally / Delete globally) */}
+                    <View className="absolute top-3 right-3 flex-row items-center gap-2 z-20">
+                      {/* Admin Global Delete Option */}
+                      {isAdmin ? (
+                        <TouchableOpacity 
+                          activeOpacity={0.7}
+                          onPress={() => handleGlobalDelete(notif.id)}
+                          className="p-1 bg-red-50 dark:bg-red-950/40 rounded-lg border border-red-100 dark:border-red-900/20"
+                        >
+                          <Trash2 color="#ef4444" size={14} />
+                        </TouchableOpacity>
+                      ) : null}
+
+                      {/* Citizen Local Hide Button */}
+                      <TouchableOpacity 
+                        activeOpacity={0.7}
+                        onPress={() => handleHideLocal(notif.id)}
+                        className="p-1 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700"
+                      >
+                        <X color={iconColor} size={14} />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View className="flex-row items-start mb-2 pr-12">
                       <View className={`p-2 rounded-xl mr-3 ${
                         isEmergency 
                           ? 'bg-red-500' 
@@ -129,27 +210,27 @@ export default function NotificationsScreen() {
                           }`}>
                             {isEmergency ? 'Darurat / Penting' : 'Pemberitahuan Umum'}
                           </Text>
-                          <Text className="font-sans text-[9px] text-gray-400 font-bold">{dateStr}</Text>
                         </View>
-                        <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mt-0.5">
+                        <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mt-0.5 pr-2">
                           {notif.title}
                         </Text>
                       </View>
                     </View>
 
-                    <Text className="font-sans text-xs text-gray-600 dark:text-gray-300 leading-normal pl-11">
+                    <Text className="font-sans text-xs text-gray-600 dark:text-gray-300 leading-normal pl-11 pr-4">
                       {notif.message}
                     </Text>
 
-                    {notif.action_url && (
-                      <View className="mt-3 pt-3 border-t border-zen-border dark:border-zen-borderDark flex-row justify-end pl-11">
+                    <View className="flex-row justify-between items-center mt-3 pt-3 border-t border-zen-border dark:border-zen-borderDark pl-11">
+                      <Text className="font-sans text-[9px] text-gray-400 font-bold">{dateStr}</Text>
+                      {notif.action_url && (
                         <Text className={`font-sans font-bold text-[10px] ${
                           isEmergency ? 'text-red-500' : 'text-zen-accent'
                         }`}>
                           Lihat Detail Aduan →
                         </Text>
-                      </View>
-                    )}
+                      )}
+                    </View>
                   </BentoCard>
                 </TouchableOpacity>
               );
