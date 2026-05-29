@@ -58,7 +58,7 @@ export default function RootLayout() {
       const accessingSuperAdminOnly = inSuperAdminGroup;
       const accessingUserOnly = inUserGroup;
 
-      if (inAuthGroup) {
+      if (inAuthGroup && segments[1] !== 'reset-password') {
         if (isAdmin) {
           return navigateSafely('/(admin-tabs)');
         } else {
