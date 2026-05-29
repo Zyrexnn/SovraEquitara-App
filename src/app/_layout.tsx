@@ -87,6 +87,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="admin/report/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="admin/leaderboard" options={{ headerShown: false }} />
         <Stack.Screen name="superadmin/index" options={{ headerShown: false }} />
         <Stack.Screen name="superadmin/admins" options={{ headerShown: false }} />
         <Stack.Screen name="superadmin/users" options={{ headerShown: false }} />

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { apiClient, getImageUrl } from '../../api/client';
-import { LogOut, User as UserIcon, Shield, Settings, ShieldAlert } from 'lucide-react-native';
+import { LogOut, User as UserIcon, Shield, Settings, ShieldAlert, Award } from 'lucide-react-native';
 
 export default function AdminProfileScreen() {
   const router = useRouter();
@@ -82,6 +82,17 @@ export default function AdminProfileScreen() {
         <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl flex-row justify-between items-center">
           <Text className="font-display font-bold text-gray-800 dark:text-gray-100">Edit Profil Saya</Text>
           <Settings color="#6366f1" size={18} />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        className="w-full mb-6" 
+        activeOpacity={0.9}
+        onPress={() => router.push('/admin/leaderboard' as any)}
+      >
+        <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl flex-row justify-between items-center">
+          <Text className="font-display font-bold text-gray-800 dark:text-gray-100">Peringkat Warga (Leaderboard)</Text>
+          <Award color="#6366f1" size={18} />
         </View>
       </TouchableOpacity>
 
