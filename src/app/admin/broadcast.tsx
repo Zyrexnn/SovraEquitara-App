@@ -36,7 +36,7 @@ export default function AdminBroadcastScreen() {
         title: title.trim(),
         message: message.trim(),
         type: type,
-        target_role: targetRole,
+        target_role: targetRole === 'CITIZEN' ? 'USER' : targetRole,
       });
 
       Alert.alert(
