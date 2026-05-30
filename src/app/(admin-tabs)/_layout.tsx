@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, User, Map } from 'lucide-react-native';
+import { Home, User, Map, FileText, Megaphone, MessageSquare } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
 
@@ -28,7 +28,7 @@ export default function AdminTabsLayout() {
         tabBarInactiveTintColor: isDark ? '#6b7280' : '#9ca3af',
         tabBarLabelStyle: {
           fontFamily: 'Inter',
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: '700',
           marginTop: 2,
         },
@@ -37,7 +37,7 @@ export default function AdminTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Beranda',
+          title: 'Dashboard',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
               <Home color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
@@ -46,9 +46,20 @@ export default function AdminTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="reports"
+        options={{
+          title: 'Arsip Laporan',
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
+              <FileText color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="map"
         options={{
-          title: 'Peta',
+          title: 'Peta Laporan',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
               <Map color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
@@ -57,9 +68,31 @@ export default function AdminTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="broadcast"
+        options={{
+          title: 'Broadcast',
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
+              <Megaphone color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="helpdesk"
+        options={{
+          title: 'Kotak Bantuan',
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
+              <MessageSquare color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: 'Profil Saya',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-indigo-500/10' : 'bg-transparent'}`}>
               <User color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
