@@ -3,6 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacit
 import { Link, useRouter } from 'expo-router';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
+import { AppLogo } from '../../components/ui/AppLogo';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 
@@ -27,7 +28,6 @@ export default function LoginScreen() {
       const response = await apiClient.post('/auth/login', { email, password });
       if (response.data?.access_token && response.data?.user) {
         await login(response.data.access_token, response.data.user);
-        // RootLayout auth guard will handle role-based redirection automatically
       } else {
         setError('Respons server tidak valid');
       }
@@ -43,18 +43,21 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-        <View className="items-center mb-10">
-          <Text className="font-display text-4xl font-bold text-zen-accent mb-2">SovraEquitara</Text>
-          <Text className="font-sans text-gray-500 dark:text-gray-400 text-center">
-            Smart Living, Transparent Governance.
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center mb-8">
+          <AppLogo width={280} height={120} className="mb-2" />
+          <Text className="font-sans text-xs font-bold text-gray-400 dark:text-gray-500 text-center tracking-widest uppercase">
+            Smart Living · Transparent Governance
           </Text>
         </View>
 
-        <View className="bg-zen-surface dark:bg-zen-darkSurface p-6 rounded-bento shadow-zen">
-          <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-6">Masuk</Text>
+        <View className="bg-zen-card dark:bg-zen-cardDark border border-zen-border dark:border-zen-borderDark p-8 rounded-bento shadow-zen">
+          <Text className="font-display text-2xl font-black text-gray-900 dark:text-white mb-6">Masuk</Text>
           
-          {error ? <Text className="font-sans text-red-500 mb-4 text-center">{error}</Text> : null}
+          {error ? <Text className="font-sans text-xs font-bold text-red-500 mb-4 text-center">{error}</Text> : null}
 
           <ZenInput
             label="Email"
@@ -76,22 +79,21 @@ export default function LoginScreen() {
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={() => router.push('/(auth)/forgot-password' as any)}
-            className="self-end mt-1 mb-4"
+            className="self-end mt-1 mb-6"
           >
-            <Text className="font-sans text-xs font-semibold text-indigo-500 dark:text-indigo-400">Lupa Kata Sandi?</Text>
+            <Text className="font-sans text-xs font-bold text-emerald-500 dark:text-emerald-400">Lupa Kata Sandi?</Text>
           </TouchableOpacity>
 
           <ZenButton 
-            label="Login" 
-            className="mt-2" 
+            label="Masuk Ke Akun" 
             isLoading={isLoading} 
             onPress={handleLogin} 
           />
 
-          <View className="flex-row justify-center mt-6">
-            <Text className="font-sans text-gray-500 dark:text-gray-400">Belum punya akun? </Text>
+          <View className="flex-row justify-center mt-8 pt-6 border-t border-gray-100 dark:border-zinc-900/50">
+            <Text className="font-sans text-xs text-gray-400 dark:text-gray-500">Belum memiliki akun? </Text>
             <Link href="/(auth)/register" asChild>
-              <Text className="font-sans font-semibold text-zen-accent">Daftar sekarang</Text>
+              <Text className="font-sans text-xs font-bold text-emerald-500 dark:text-emerald-400">Daftar sekarang</Text>
             </Link>
           </View>
         </View>

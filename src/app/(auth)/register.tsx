@@ -3,6 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-na
 import { Link, useRouter } from 'expo-router';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
+import { AppLogo } from '../../components/ui/AppLogo';
 import { apiClient } from '../../api/client';
 
 export default function RegisterScreen() {
@@ -50,22 +51,25 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-        <View className="items-center mb-6">
-          <Text className="font-display text-4xl font-bold text-zen-accent mb-2">Mulai Bergabung</Text>
-          <Text className="font-sans text-gray-500 dark:text-gray-400 text-center">
-            Suarakan aspirasi Anda untuk kota yang lebih baik.
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center mb-8">
+          <AppLogo width={280} height={120} className="mb-2" />
+          <Text className="font-sans text-xs font-bold text-gray-400 dark:text-gray-500 text-center tracking-widest uppercase">
+            Mulai Bergabung Untuk Perubahan
           </Text>
         </View>
 
-        <View className="bg-zen-surface dark:bg-zen-darkSurface p-6 rounded-bento shadow-zen">
-          <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-6">Daftar Akun Baru</Text>
+        <View className="bg-zen-card dark:bg-zen-cardDark border border-zen-border dark:border-zen-borderDark p-8 rounded-bento shadow-zen">
+          <Text className="font-display text-2xl font-black text-gray-900 dark:text-white mb-6">Daftar Akun</Text>
           
-          {error ? <Text className="font-sans text-red-500 mb-4 text-center">{error}</Text> : null}
-          {success ? <Text className="font-sans text-zen-accent mb-4 text-center">{success}</Text> : null}
+          {error ? <Text className="font-sans text-xs font-bold text-red-500 mb-4 text-center">{error}</Text> : null}
+          {success ? <Text className="font-sans text-xs font-bold text-emerald-500 mb-4 text-center">{success}</Text> : null}
 
           <ZenInput
             label="Nama Lengkap"
@@ -101,16 +105,16 @@ export default function RegisterScreen() {
           />
 
           <ZenButton 
-            label="Daftar" 
-            className="mt-4" 
+            label="Buat Akun Baru" 
             isLoading={isLoading} 
             onPress={handleRegister} 
+            className="mt-2"
           />
 
-          <View className="flex-row justify-center mt-6">
-            <Text className="font-sans text-gray-500 dark:text-gray-400">Sudah punya akun? </Text>
+          <View className="flex-row justify-center mt-8 pt-6 border-t border-gray-100 dark:border-zinc-900/50">
+            <Text className="font-sans text-xs text-gray-400 dark:text-gray-500">Sudah punya akun? </Text>
             <Link href="/(auth)/login" asChild>
-              <Text className="font-sans font-semibold text-zen-accent">Masuk</Text>
+              <Text className="font-sans text-xs font-bold text-emerald-500 dark:text-emerald-400">Masuk</Text>
             </Link>
           </View>
         </View>

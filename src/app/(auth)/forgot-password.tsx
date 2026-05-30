@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
-import { BentoCard } from '../../components/ui/BentoCard';
-import { ArrowLeft, KeyRound } from 'lucide-react-native';
+import { AppLogo } from '../../components/ui/AppLogo';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -43,21 +43,22 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Back Link */}
         <TouchableOpacity 
           onPress={() => router.back()} 
-          className="absolute top-14 left-6 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
+          className="absolute top-14 left-6 p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
         >
-          <ArrowLeft color="#374151" size={20} />
+          <ArrowLeft color="#10b981" size={20} />
         </TouchableOpacity>
 
-        {/* Title */}
+        {/* Logo */}
         <View className="items-center mb-8">
-          <View className="p-4 bg-indigo-500 rounded-3xl mb-4 shadow-sm">
-            <KeyRound color="white" size={36} />
-          </View>
-          <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white text-center">Pulihkan Sandi</Text>
+          <AppLogo width={280} height={120} className="mb-2" />
+          <Text className="font-display text-2xl font-black text-gray-900 dark:text-white text-center mt-4">Pulihkan Sandi</Text>
           <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 text-center mt-2 px-4 leading-normal">
             Masukkan alamat email Anda untuk menerima kode OTP pemulihan keamanan akun.
           </Text>
@@ -70,7 +71,7 @@ export default function ForgotPasswordScreen() {
         ) : null}
 
         {/* Form Card */}
-        <BentoCard className="p-5">
+        <View className="bg-zen-card dark:bg-zen-cardDark border border-zen-border dark:border-zen-borderDark p-8 rounded-bento shadow-zen">
           <ZenInput
             label="Email Terdaftar"
             placeholder="contoh@email.com"
@@ -82,17 +83,17 @@ export default function ForgotPasswordScreen() {
 
           <ZenButton
             label="Kirim Kode Pemulihan"
-            className="mt-4 bg-indigo-500"
             isLoading={isLoading}
             onPress={handleSubmit}
+            className="mt-2"
           />
-        </BentoCard>
+        </View>
 
         <TouchableOpacity 
           onPress={() => router.back()}
-          className="mt-6 items-center"
+          className="mt-8 items-center"
         >
-          <Text className="font-sans font-bold text-xs text-indigo-500 dark:text-indigo-400">Kembali ke Login</Text>
+          <Text className="font-sans font-bold text-xs text-emerald-500 dark:text-emerald-400">Kembali ke Login</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

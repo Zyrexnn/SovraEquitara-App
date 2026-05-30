@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
-import { BentoCard } from '../../components/ui/BentoCard';
-import { ArrowLeft, ShieldCheck } from 'lucide-react-native';
+import { AppLogo } from '../../components/ui/AppLogo';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -119,27 +119,28 @@ export default function ResetPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Back Link */}
         <TouchableOpacity 
           onPress={() => router.back()} 
-          className="absolute top-14 left-6 p-2 bg-gray-50 dark:bg-gray-800 rounded-full"
+          className="absolute top-14 left-6 p-3 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
         >
-          <ArrowLeft color="#374151" size={20} />
+          <ArrowLeft color="#10b981" size={20} />
         </TouchableOpacity>
  
-        {/* Title */}
-        <View className="items-center mb-6">
-          <View className="p-4 bg-emerald-500 rounded-3xl mb-4 shadow-sm">
-            <ShieldCheck color="white" size={36} />
-          </View>
-          <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white text-center">Atur Ulang Sandi</Text>
+        {/* Logo and Title */}
+        <View className="items-center mb-8">
+          <AppLogo width={280} height={120} className="mb-2" />
+          <Text className="font-display text-2xl font-black text-gray-900 dark:text-white text-center mt-4">Atur Ulang Sandi</Text>
           <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 text-center mt-2 px-4 leading-normal">
             {step === 1 
               ? `Masukkan kode OTP yang dikirimkan ke `
               : `Langkah Terakhir: Tetapkan kata sandi baru untuk akun `
             }
-            <Text className="font-bold text-indigo-500">{decodeURIComponent(email || '')}</Text>
+            <Text className="font-bold text-emerald-500">{decodeURIComponent(email || '')}</Text>
           </Text>
         </View>
 
@@ -150,7 +151,7 @@ export default function ResetPasswordScreen() {
         ) : null}
 
         {/* Form Card */}
-        <BentoCard className="p-5">
+        <View className="bg-zen-card dark:bg-zen-cardDark border border-zen-border dark:border-zen-borderDark p-8 rounded-bento shadow-zen">
           {step === 1 ? (
             <>
               <ZenInput
@@ -162,14 +163,14 @@ export default function ResetPasswordScreen() {
                 autoFocus
               />
 
-              <View className="flex-row justify-between items-center mt-2 mb-4">
+              <View className="flex-row justify-between items-center mt-1 mb-6">
                 <TouchableOpacity
                   disabled={countdown > 0 || isLoading}
                   onPress={handleResendOTP}
                   className="py-1"
                 >
                   <Text className={`font-sans text-xs font-bold ${
-                    countdown > 0 ? 'text-gray-400' : 'text-indigo-500'
+                    countdown > 0 ? 'text-gray-400' : 'text-emerald-500'
                   }`}>
                     {countdown > 0 ? `Kirim Ulang (${countdown}s)` : 'Kirim Ulang Kode'}
                   </Text>
@@ -178,7 +179,6 @@ export default function ResetPasswordScreen() {
 
               <ZenButton
                 label="Verifikasi Kode"
-                className="bg-indigo-500"
                 isLoading={isLoading}
                 onPress={handleVerifyOTP}
               />
@@ -204,13 +204,13 @@ export default function ResetPasswordScreen() {
 
               <ZenButton
                 label="Perbarui Kata Sandi"
-                className="mt-4 bg-emerald-500"
                 isLoading={isLoading}
                 onPress={handleSubmit}
+                className="mt-2"
               />
             </>
           )}
-        </BentoCard>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
