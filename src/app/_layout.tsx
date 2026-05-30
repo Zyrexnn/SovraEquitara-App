@@ -102,6 +102,7 @@ export default function RootLayout() {
         <Stack.Screen name="superadmin/index" options={{ headerShown: false }} />
         <Stack.Screen name="superadmin/admins" options={{ headerShown: false }} />
         <Stack.Screen name="superadmin/users" options={{ headerShown: false }} />
+        <Stack.Screen name="superadmin/ai" options={{ headerShown: false }} />
         <Stack.Screen name="notifications" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />

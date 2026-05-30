@@ -39,7 +39,8 @@ import {
   Search,
   Bookmark,
   Megaphone,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react-native';
 
 // Indikator Titik Hijau Berkedip/Pulsing Native
@@ -268,6 +269,14 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
         </View>
         
         <View className="flex-row items-center gap-2.5">
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => router.push('/superadmin/ai' as any)} 
+            className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-full border border-purple-200 dark:border-purple-900/35 shadow-sm"
+          >
+            <Sparkles color="#a855f7" size={16} />
+          </TouchableOpacity>
+
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={toggleColorScheme} 
