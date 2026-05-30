@@ -8,6 +8,86 @@ import { useAuthStore } from '../../store/authStore';
 export default function SuperAdminAIScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  
+  // Parse message content to extract [DETAIL_BTN:uuid] or raw UUIDs into interactive buttons
+  const renderMessageContent = (content: string, isUserMessage: boolean) => {
+    const regex = /\[DETAIL_BTN:([0-9a-fA-F\-]{36})\]/g;
+    const parts: { type: 'text' | 'button'; value: string }[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      const index = match.index;
+      if (index > lastIndex) {
+        parts.push({ type: 'text', value: content.substring(lastIndex, index) });
+      }
+      parts.push({ type: 'button', value: match[1] });
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < content.length) {
+      parts.push({ type: 'text', value: content.substring(lastIndex) });
+    }
+
+    if (parts.length === 0) {
+      // Fallback regex for raw UUIDs
+      const uuidRegex = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g;
+      let lastUuidIndex = 0;
+      let uuidMatch;
+      while ((uuidMatch = uuidRegex.exec(content)) !== null) {
+        const idx = uuidMatch.index;
+        if (idx > lastUuidIndex) {
+          parts.push({ type: 'text', value: content.substring(lastUuidIndex, idx) });
+        }
+        parts.push({ type: 'button', value: uuidMatch[1] });
+        lastUuidIndex = uuidRegex.lastIndex;
+      }
+      if (lastUuidIndex < content.length) {
+        parts.push({ type: 'text', value: content.substring(lastUuidIndex) });
+      }
+      if (parts.length === 0) {
+        parts.push({ type: 'text', value: content });
+      }
+    }
+
+    return (
+      <View>
+        {parts.map((part, idx) => {
+          if (part.type === 'text') {
+            return (
+              <Text
+                key={idx}
+                className={`font-sans text-sm leading-6 ${
+                  isUserMessage ? 'text-white' : 'text-stone-850 dark:text-stone-200'
+                }`}
+              >
+                {part.value}
+              </Text>
+            );
+          } else {
+            return (
+              <TouchableOpacity
+                key={idx}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/admin/report/${part.value}` as any)}
+                className="mt-3 py-3 px-4 rounded-xl flex-row items-center justify-between shadow-sm border bg-purple-50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/40"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-6 h-6 rounded-full items-center justify-center mr-2 bg-purple-100 dark:bg-purple-900/30">
+                    <Sparkles color="#a855f7" size={12} />
+                  </View>
+                  <Text className="font-display font-bold text-xs text-purple-750 dark:text-purple-400">
+                    Tinjau Laporan ({part.value.substring(0, 8)}...)
+                  </Text>
+                </View>
+                <Text className="font-sans font-bold text-xs text-purple-500">→</Text>
+              </TouchableOpacity>
+            );
+          }
+        })}
+      </View>
+    );
+  };
   const [messages, setMessages] = useState<{id: string, text: string, sender: 'user' | 'ai'}[]>([
     { 
       id: '1', 
@@ -130,11 +210,7 @@ export default function SuperAdminAIScreen() {
               </View>
             )}
 
-            <Text className={`font-sans text-sm leading-6 ${
-              msg.sender === 'user' ? 'text-white' : 'text-stone-850 dark:text-stone-200'
-            }`}>
-              {msg.text}
-            </Text>
+            {renderMessageContent(msg.text, msg.sender === 'user')}
             
             <Text className={`font-sans text-[8px] mt-1.5 ${
               msg.sender === 'user' ? 'text-purple-200 self-end' : 'text-stone-400 dark:text-stone-500'
