@@ -55,11 +55,10 @@ export default function ReportDetailScreen() {
   const fetchReportDetails = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      const res = await apiClient.get('/public-reports');
-      if (res.data?.data) {
-        const found = res.data.data.find((r: any) => r.id.toString() === id);
-        setReport(found);
-      }
+      // We can now fetch the report directly by ID since the backend supports it.
+      // This is crucial for PENDING reports which don't appear in public-reports
+      const res = await apiClient.get(`/reports/${id}`);
+      setReport(res.data?.data);
     } catch (e) {
       console.log('Error fetching report', e);
     } finally {
