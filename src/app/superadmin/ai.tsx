@@ -96,6 +96,7 @@ export default function SuperAdminAIScreen() {
     }
   ]);
 
+  const [aiEngine, setAiEngine] = useState<'local' | 'gemini'>('local');
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -114,7 +115,7 @@ export default function SuperAdminAIScreen() {
     try {
       const response = await apiClient.post('/admin/ai-assistant', {
         query: userMessage,
-        model: 'gemini'
+        model: aiEngine
       });
       setMessages([...newMessages, {
         id: (Date.now() + 1).toString(),
@@ -226,6 +227,31 @@ export default function SuperAdminAIScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Model Selector Bar */}
+      <View className="px-4 py-2 bg-stone-50 dark:bg-stone-900/40 border-t border-stone-100 dark:border-stone-900 flex-row items-center justify-between">
+        <Text className="font-sans text-[9px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+          Mesin AI:
+        </Text>
+        <View className="flex-row bg-stone-200/50 dark:bg-stone-850 p-0.5 rounded-lg border border-stone-200/30 dark:border-stone-800">
+          <TouchableOpacity
+            onPress={() => setAiEngine('local')}
+            className={`px-3 py-1 rounded-md ${aiEngine === 'local' ? 'bg-white dark:bg-stone-900 shadow-sm' : ''}`}
+          >
+            <Text className={`font-display font-black text-[8px] uppercase tracking-wider ${aiEngine === 'local' ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-stone-555'}`}>
+              Qwen Local (Aktif)
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setAiEngine('gemini')}
+            className={`px-3 py-1 rounded-md ${aiEngine === 'gemini' ? 'bg-purple-650' : ''}`}
+          >
+            <Text className={`font-display font-black text-[8px] uppercase tracking-wider ${aiEngine === 'gemini' ? 'text-white' : 'text-stone-500 dark:text-stone-555'}`}>
+              Gemini API
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Input Form */}
       <View className="p-4 bg-white dark:bg-stone-950 border-t border-stone-100 dark:border-stone-900 flex-row items-center">
