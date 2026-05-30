@@ -1,62 +1,88 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { AppLogo } from '../../components/ui/AppLogo';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
-import { MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell, Clock, Sun, Moon, User as UserIcon } from 'lucide-react-native';
+import {
+  MapPin, CheckCircle, AlertTriangle, MessageSquare, Bell,
+  Clock, Sun, Moon, User as UserIcon, ThumbsUp, FileText, ChevronRight,
+} from 'lucide-react-native';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const [stats, setStats] = useState({ pending: 0, resolved: 0, total: 0 });
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const fetchStats = async () => {
+  // --- State ---
+  const [myReports, setMyReports] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [publicFeed, setPublicFeed] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Derived stats from my reports (client-side calculation — 100% accurate)
+  const pendingCount = myReports.filter(r => r.status === 'pending').length;
+  const resolvedCount = myReports.filter(r => r.status === 'resolved').length;
+  const verifiedCount = myReports.filter(r => r.status === 'verified').length;
+  const totalCount = myReports.length;
+
+  // --- Fetching ---
+  const fetchMyReports = async () => {
     try {
-      const res = await apiClient.get('/reports/stats');
-      if (res.data?.data) {
-        setStats(res.data.data);
-      } else if (res.data) {
-        setStats(res.data);
-      }
+      const res = await apiClient.get('/my-reports');
+      if (res.data?.data) setMyReports(res.data.data);
+      else if (Array.isArray(res.data)) setMyReports(res.data);
     } catch (e) {
-      console.log('Failed to fetch stats', e);
+      console.log('Failed to fetch my reports', e);
     }
   };
 
   const fetchLeaderboard = async () => {
     try {
       const res = await apiClient.get('/leaderboard');
-      if (res.data?.data) {
-        setLeaderboard(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setLeaderboard(res.data);
-      }
+      if (res.data?.data) setLeaderboard(res.data.data);
+      else if (Array.isArray(res.data)) setLeaderboard(res.data);
     } catch (e) {
       console.log('Failed to fetch leaderboard', e);
     }
   };
 
+  const fetchPublicFeed = async () => {
+    try {
+      const res = await apiClient.get('/public-reports?sort=recent&limit=3');
+      if (res.data?.data) setPublicFeed(res.data.data.slice(0, 3));
+      else if (Array.isArray(res.data)) setPublicFeed(res.data.slice(0, 3));
+    } catch (e) {
+      console.log('Failed to fetch public feed', e);
+    }
+  };
+
+  const loadAll = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    await Promise.all([fetchMyReports(), fetchLeaderboard(), fetchPublicFeed()]);
+    setIsLoading(false);
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchStats(), fetchLeaderboard()]);
+    await loadAll(false);
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchStats();
-    fetchLeaderboard();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadAll();
+    }, [])
+  );
 
-  const verifiedCount = Math.max(0, stats.total - stats.pending - stats.resolved);
-
-  // ChartJS Doughnut configuration HTML string
+  // ChartJS Doughnut HTML
   const chartHtml = `
     <!DOCTYPE html>
     <html>
@@ -65,35 +91,27 @@ export default function DashboardScreen() {
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       <style>
         html, body {
-          margin: 0;
-          padding: 0;
+          margin: 0; padding: 0;
           background: transparent;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          height: 100%;
-          overflow: hidden;
+          height: 100%; overflow: hidden;
         }
         #chart-container {
-          position: relative;
-          height: 100%;
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          position: relative; height: 100%; width: 100%;
+          display: flex; align-items: center; justify-content: center;
         }
       </style>
     </head>
     <body>
-      <div id="chart-container">
-        <canvas id="myChart"></canvas>
-      </div>
+      <div id="chart-container"><canvas id="myChart"></canvas></div>
       <script>
         var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
+        new Chart(ctx, {
           type: 'doughnut',
           data: {
-            labels: ['Diproses', 'Terverifikasi', 'Selesai'],
+            labels: ['Menunggu', 'Terverifikasi', 'Selesai'],
             datasets: [{
-              data: [${stats.pending}, ${verifiedCount}, ${stats.resolved}],
+              data: [${pendingCount}, ${verifiedCount}, ${resolvedCount}],
               backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'],
               borderWidth: ${isDark ? 2 : 1},
               borderColor: ${isDark ? "'#111111'" : "'#ffffff'"},
@@ -108,17 +126,11 @@ export default function DashboardScreen() {
                 position: 'right',
                 labels: {
                   color: ${isDark ? "'#fafaf9'" : "'#1c1917'"},
-                  font: {
-                    weight: 'bold',
-                    size: 11
-                  },
-                  boxWidth: 10,
-                  padding: 8
+                  font: { weight: 'bold', size: 11 },
+                  boxWidth: 10, padding: 8
                 }
               },
-              tooltip: {
-                enabled: true
-              }
+              tooltip: { enabled: true }
             },
             cutout: '60%'
           }
@@ -129,7 +141,7 @@ export default function DashboardScreen() {
   `;
 
   return (
-    <ScrollView 
+    <ScrollView
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
       contentContainerStyle={{ padding: 16, paddingTop: 60, paddingBottom: 40 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -137,9 +149,7 @@ export default function DashboardScreen() {
       {/* Welcome Header */}
       <View className="mb-8 flex-row justify-between items-center">
         <View className="flex-1 mr-3">
-          <Text className="font-display text-3xl font-black text-gray-900 dark:text-white">
-            Suara <Text className="text-emerald-500 dark:text-emerald-400">Warga</Text>
-          </Text>
+          <AppLogo width={160} height={60} className="self-start -ml-3" />
           <Text className="font-sans text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
             Selamat beraktivitas, {user?.full_name || 'Warga'}.
           </Text>
@@ -154,22 +164,18 @@ export default function DashboardScreen() {
           <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-3.5 py-1.5 rounded-full border border-emerald-500/10">
             <Text className="font-display font-black text-emerald-600 dark:text-emerald-400 text-xs tracking-wider">{user?.points || 0} PTS</Text>
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             activeOpacity={0.8}
-            onPress={toggleColorScheme} 
+            onPress={toggleColorScheme}
             className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
-            {isDark ? (
-              <Sun color="#f59e0b" size={18} />
-            ) : (
-              <Moon color="#6366f1" size={18} />
-            )}
+            {isDark ? <Sun color="#f59e0b" size={18} /> : <Moon color="#6366f1" size={18} />}
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => router.push('/notifications' as any)} 
+            onPress={() => router.push('/notifications' as any)}
             className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
           >
             <Bell color="#10b981" size={18} />
@@ -179,10 +185,10 @@ export default function DashboardScreen() {
 
       {/* Bento Grid Layout */}
       <View>
-        
+
         {/* Large Card: Lapor Masalah */}
-        <TouchableOpacity 
-          className="w-full mb-5" 
+        <TouchableOpacity
+          className="w-full mb-5"
           activeOpacity={0.9}
           onPress={() => router.push('/(tabs)/create-report')}
         >
@@ -201,7 +207,7 @@ export default function DashboardScreen() {
 
         {/* Medium Cards Grid */}
         <View className="flex-row gap-4 mb-5">
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-1"
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/map')}
@@ -217,7 +223,7 @@ export default function DashboardScreen() {
             </BentoCard>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-1"
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/chat')}
@@ -234,7 +240,7 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Small Stat Cards Grid */}
+        {/* Stat Cards: Laporan Saya */}
         <View className="flex-row gap-4 mb-5">
           <View className="flex-1">
             <BentoCard className="bg-emerald-50/70 border border-emerald-100/10 dark:bg-emerald-950/20 dark:border-emerald-900/15 p-4 rounded-3xl h-28 justify-between shadow-none">
@@ -242,7 +248,7 @@ export default function DashboardScreen() {
                 <CheckCircle color="#10b981" size={16} />
               </View>
               <View>
-                <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.resolved}</Text>
+                <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{resolvedCount}</Text>
                 <Text className="font-sans text-[9px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Laporan Selesai</Text>
               </View>
             </BentoCard>
@@ -254,14 +260,50 @@ export default function DashboardScreen() {
                 <Clock color="#d97706" size={16} />
               </View>
               <View>
-                <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
+                <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{pendingCount}</Text>
                 <Text className="font-sans text-[9px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Sedang Diproses</Text>
+              </View>
+            </BentoCard>
+          </View>
+
+          <View className="flex-1">
+            <BentoCard className="bg-blue-50/70 border border-blue-100/10 dark:bg-blue-950/20 dark:border-blue-900/15 p-4 rounded-3xl h-28 justify-between shadow-none">
+              <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
+                <FileText color="#3b82f6" size={16} />
+              </View>
+              <View>
+                <Text className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">{totalCount}</Text>
+                <Text className="font-sans text-[9px] font-bold text-blue-700/80 dark:text-blue-300/85 uppercase tracking-wider mt-0.5">Total Laporan</Text>
               </View>
             </BentoCard>
           </View>
         </View>
 
-        {/* Warga Teladan Leaderboard Bento Box */}
+        {/* Chart Card — Proporsi Status Laporan Saya */}
+        <View className="w-full mb-5">
+          <BentoCard className="p-5 shadow-none">
+            <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mb-3">Proporsi Status Laporan Saya</Text>
+            {totalCount > 0 ? (
+              <View style={{ height: 200, width: '100%' }}>
+                <WebView
+                  originWhitelist={['*']}
+                  source={{ html: chartHtml }}
+                  style={{ backgroundColor: 'transparent', flex: 1, opacity: 0.99 }}
+                  scrollEnabled={false}
+                />
+              </View>
+            ) : (
+              <View className="h-40 items-center justify-center bg-gray-50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700/50">
+                <FileText color={isDark ? '#4b5563' : '#d1d5db'} size={28} />
+                <Text className="font-sans text-xs text-gray-400 dark:text-gray-600 text-center px-6 mt-3 leading-relaxed">
+                  Belum ada aduan yang Anda kirimkan untuk dianalisis statistiknya.
+                </Text>
+              </View>
+            )}
+          </BentoCard>
+        </View>
+
+        {/* Warga Teladan Leaderboard */}
         <View className="w-full mb-5">
           <BentoCard className="rounded-3xl p-5 shadow-none">
             <View className="flex-row justify-between items-center mb-4">
@@ -270,7 +312,7 @@ export default function DashboardScreen() {
                 <Text className="font-sans font-black text-[9px] text-white tracking-wider">TOP 10</Text>
               </View>
             </View>
-            
+
             {leaderboard.length === 0 ? (
               <View className="py-6 items-center">
                 <ActivityIndicator size="small" color="#10b981" />
@@ -314,38 +356,78 @@ export default function DashboardScreen() {
           </BentoCard>
         </View>
 
-        {/* Chart Card */}
+        {/* Public Feed Section — Top 3 Laporan Terkini */}
         <View className="w-full mb-5">
-          <BentoCard className="h-60 p-5 shadow-none">
-            <Text className="font-display font-bold text-gray-900 dark:text-white text-sm mb-3">Proporsi Status Laporan Saya</Text>
-            {stats.total > 0 ? (
-              <View className="flex-1 w-full bg-transparent">
-                <WebView
-                  originWhitelist={['*']}
-                  source={{ html: chartHtml }}
-                  style={{ backgroundColor: 'transparent', flex: 1, opacity: 0.99 }}
-                  scrollEnabled={false}
-                />
-              </View>
-            ) : (
-              <View className="flex-1 items-center justify-center py-6 bg-gray-50 dark:bg-gray-800/10 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
-                <Text className="font-sans text-xs text-gray-400 dark:text-gray-500 text-center px-4 leading-normal">
-                  Belum ada aduan yang Anda kirimkan untuk dianalisis statistiknya.
-                </Text>
-              </View>
-            )}
-          </BentoCard>
+          <View className="flex-row justify-between items-center mb-3 pl-1">
+            <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              Laporan Terkini Warga
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/feed' as any)} activeOpacity={0.7}>
+              <Text className="font-sans text-xs font-bold text-emerald-500">Lihat Semua →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {isLoading && publicFeed.length === 0 ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="small" color="#10b981" />
+            </View>
+          ) : publicFeed.length === 0 ? (
+            <BentoCard className="p-5 items-center shadow-none">
+              <Text className="font-sans text-xs text-gray-400 dark:text-gray-600 text-center">Belum ada laporan publik.</Text>
+            </BentoCard>
+          ) : (
+            <View className="gap-3">
+              {publicFeed.map((report) => (
+                <TouchableOpacity
+                  key={report.id}
+                  activeOpacity={0.9}
+                  onPress={() => router.push(`/(tabs)/reports/${report.id}` as any)}
+                >
+                  <BentoCard className="p-4 shadow-none">
+                    <View className="flex-row items-start justify-between mb-2">
+                      <View className="flex-1 mr-2">
+                        <Text className="font-display font-bold text-gray-900 dark:text-white text-sm" numberOfLines={1}>
+                          {report.category?.name || 'Laporan Umum'}
+                        </Text>
+                        <Text className="font-sans text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                          {report.profile?.full_name || report.user?.full_name || 'Anonim'}
+                        </Text>
+                      </View>
+                      <StatusBadge status={report.status} />
+                    </View>
+
+                    <Text className="font-sans text-xs text-gray-600 dark:text-gray-300 leading-relaxed mb-2.5" numberOfLines={2}>
+                      {report.description}
+                    </Text>
+
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center flex-1 mr-2">
+                        <MapPin color="#9ca3af" size={12} />
+                        <Text className="font-sans text-[10px] text-gray-400 dark:text-gray-500 ml-1" numberOfLines={1}>
+                          {report.location_detail || 'Lokasi tidak spesifik'}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center">
+                        <ThumbsUp color="#10b981" size={12} />
+                        <Text className="font-sans text-[10px] font-bold text-zen-accent ml-1">{report.vote_count || 0}</Text>
+                      </View>
+                    </View>
+                  </BentoCard>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* Full width button to Feed */}
-        <TouchableOpacity 
-          className="w-full mb-4 mt-1" 
+        {/* Full Width Button to Feed */}
+        <TouchableOpacity
+          className="w-full mb-4 mt-1"
           activeOpacity={0.9}
           onPress={() => router.push('/feed' as any)}
         >
           <View className="bg-gray-100/70 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-800/80 p-4 rounded-2xl flex-row justify-between items-center shadow-none">
             <Text className="font-display font-bold text-gray-700 dark:text-gray-300 text-sm">Semua Laporan Publik Kota</Text>
-            <Text className="font-sans font-bold text-zen-accent">→</Text>
+            <ChevronRight color={isDark ? '#6b7280' : '#9ca3af'} size={18} />
           </View>
         </TouchableOpacity>
 
