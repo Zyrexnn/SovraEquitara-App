@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
+import { useZenAlert } from '../../context/ZenAlertContext';
 import { ZenButton } from '../../components/ui/ZenButton';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { apiClient, getImageUrl } from '../../api/client';
@@ -9,6 +10,7 @@ import { LogOut, Award, User as UserIcon, Settings } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { showZenAlert } = useZenAlert();
   const { user, logout, fetchProfile } = useAuthStore();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,21 +38,16 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Keluar',
-      'Apakah Anda yakin ingin keluar?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Keluar', 
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            // Auth guard will automatically redirect
-          }
-        }
-      ]
-    );
+    showZenAlert({
+      title: 'Keluar Akun Warga',
+      message: 'Apakah Anda yakin ingin keluar dari sesi akun warga Anda?',
+      type: 'confirm',
+      confirmText: 'Keluar',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        await logout();
+      }
+    });
   };
 
   return (

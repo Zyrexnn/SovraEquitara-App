@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useRef } from 'react';
 import { Camera, MapPin, HardHat, Leaf, Building, ShieldAlert, Search } from 'lucide-react-native';
 import { WebView } from 'react-native-webview';
+import { useZenAlert } from '../../context/ZenAlertContext';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
 import { apiClient } from '../../api/client';
 
 export default function CreateReportScreen() {
+  const { showZenAlert } = useZenAlert();
   const [description, setDescription] = useState('');
   const [locationDetail, setLocationDetail] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -44,13 +46,21 @@ export default function CreateReportScreen() {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Izin Ditolak', 'Aplikasi butuh akses lokasi untuk fitur ini.');
+        showZenAlert({
+          title: 'Izin Ditolak',
+          message: 'Aplikasi butuh akses lokasi untuk fitur GPS ini.',
+          type: 'warning'
+        });
         return;
       }
       
       let enabled = await Location.hasServicesEnabledAsync();
       if (!enabled) {
-        Alert.alert('GPS Mati', 'Mohon aktifkan GPS atau cari & geser penanda lokasi di peta secara manual.');
+        showZenAlert({
+          title: 'GPS Tidak Aktif',
+          message: 'Mohon aktifkan GPS atau cari & geser penanda lokasi di peta secara manual.',
+          type: 'warning'
+        });
         setCoords({ lat: -6.2088, lng: 106.8456 }); // Default Jakarta
         return;
       }
@@ -61,9 +71,17 @@ export default function CreateReportScreen() {
       setCoords({ lat, lng });
       setMapRegion({ latitude: lat, longitude: lng });
       webViewRef.current?.injectJavaScript(`window.updateMap(${lat}, ${lng}); true;`);
-      Alert.alert('Sukses', 'Titik lokasi berhasil didapatkan!');
+      showZenAlert({
+        title: 'Lokasi Didapatkan',
+        message: 'Titik koordinat GPS berhasil didapatkan dan disematkan!',
+        type: 'success'
+      });
     } catch (error) {
-      Alert.alert('GPS Bermasalah', 'Gagal mendapatkan lokasi otomatis. Silakan cari lokasi di peta secara manual.');
+      showZenAlert({
+        title: 'GPS Bermasalah',
+        message: 'Gagal mendapatkan lokasi otomatis. Silakan geser penanda di peta secara manual.',
+        type: 'warning'
+      });
       setCoords({ lat: -6.2088, lng: 106.8456 }); // Default Jakarta
       webViewRef.current?.injectJavaScript(`window.updateMap(-6.2088, 106.8456); true;`);
     }
@@ -82,10 +100,18 @@ export default function CreateReportScreen() {
         setMapRegion({ latitude: lat, longitude: lng });
         webViewRef.current?.injectJavaScript(`window.updateMap(${lat}, ${lng}); true;`);
       } else {
-        Alert.alert('Tidak Ditemukan', 'Lokasi tidak ditemukan di Indonesia.');
+        showZenAlert({
+          title: 'Tidak Ditemukan',
+          message: 'Alamat/lokasi tersebut tidak ditemukan dalam wilayah Indonesia.',
+          type: 'error'
+        });
       }
     } catch (err) {
-      Alert.alert('Gagal', 'Terjadi kesalahan saat mencari lokasi. Periksa koneksi internet Anda.');
+      showZenAlert({
+        title: 'Pencarian Gagal',
+        message: 'Terjadi kesalahan saat mencari lokasi. Periksa koneksi internet Anda.',
+        type: 'error'
+      });
     } finally {
       setIsSearching(false);
     }
@@ -93,7 +119,11 @@ export default function CreateReportScreen() {
 
   const handleSubmit = async () => {
     if (!description || !coords || !image) {
-      Alert.alert('Error', 'Deskripsi, foto, dan lokasi wajib diisi.');
+      showZenAlert({
+        title: 'Data Belum Lengkap',
+        message: 'Deskripsi aduan, foto bukti kejadian, dan koordinat lokasi wajib diisi untuk membuat laporan.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -120,10 +150,21 @@ export default function CreateReportScreen() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      Alert.alert('Sukses', 'Laporan berhasil dikirim!');
-      router.replace('/(tabs)' as any);
+      showZenAlert({
+        title: 'Laporan Dikirim',
+        message: 'Laporan aduan warga berhasil dikirim ke basis data dan menunggu moderasi!',
+        type: 'success',
+        confirmText: 'Selesai',
+        onConfirm: () => {
+          router.replace('/(tabs)' as any);
+        }
+      });
     } catch (e: any) {
-      Alert.alert('Gagal', e.response?.data?.error || 'Terjadi kesalahan saat mengirim laporan.');
+      showZenAlert({
+        title: 'Pengiriman Gagal',
+        message: e.response?.data?.error || 'Terjadi kesalahan saat memproses laporan aduan Anda.',
+        type: 'error'
+      });
     } finally {
       setIsLoading(false);
     }

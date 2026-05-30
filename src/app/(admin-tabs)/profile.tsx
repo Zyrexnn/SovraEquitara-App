@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Image, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
+import { useZenAlert } from '../../context/ZenAlertContext';
 import { BentoCard } from '../../components/ui/BentoCard';
 import { apiClient, getImageUrl } from '../../api/client';
 import { LogOut, User as UserIcon, Shield, Settings, ShieldAlert, Award } from 'lucide-react-native';
 
 export default function AdminProfileScreen() {
   const router = useRouter();
+  const { showZenAlert } = useZenAlert();
   const { user, logout, fetchProfile } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -22,21 +24,19 @@ export default function AdminProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Keluar',
-      'Apakah Anda yakin ingin keluar?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Keluar', 
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            // Auth guard will automatically redirect
-          }
-        }
-      ]
-    );
+    const isSuperAdmin = user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'superadmin';
+    showZenAlert({
+      title: isSuperAdmin ? 'Keluar Sesi Super Admin' : 'Keluar Sesi Admin',
+      message: isSuperAdmin 
+        ? 'Apakah Anda yakin ingin keluar dari konsol Super Administrator?'
+        : 'Apakah Anda yakin ingin keluar dari konsol administrasi?',
+      type: 'confirm',
+      confirmText: 'Keluar',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        await logout();
+      }
+    });
   };
 
   return (

@@ -5,6 +5,7 @@ import { useFonts, PlusJakartaSans_400Regular, PlusJakartaSans_600SemiBold, Plus
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../store/authStore';
+import { ZenAlertProvider } from '../context/ZenAlertContext';
 import '../global.css';
 
 SplashScreen.preventAutoHideAsync();
@@ -92,7 +93,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <ZenAlertProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -106,6 +107,6 @@ export default function RootLayout() {
         <Stack.Screen name="notifications" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </ZenAlertProvider>
   );
 }

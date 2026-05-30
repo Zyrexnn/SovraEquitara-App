@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useZenAlert } from '../../context/ZenAlertContext';
 import { apiClient } from '../../api/client';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
@@ -9,6 +10,7 @@ import { ArrowLeft } from 'lucide-react-native';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { showZenAlert } = useZenAlert();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,12 +26,15 @@ export default function ForgotPasswordScreen() {
 
     try {
       const res = await apiClient.post('/auth/forgot-password', { email });
-      Alert.alert('Sukses', res.data?.message || 'Kode OTP reset sandi telah dikirim ke email Anda.', [
-        { 
-          text: 'Lanjutkan', 
-          onPress: () => router.push(`/(auth)/reset-password?email=${encodeURIComponent(email)}` as any)
+      showZenAlert({
+        title: 'Kode OTP Dikirim',
+        message: res.data?.message || 'Kode OTP reset kata sandi berhasil dikirim ke alamat email Anda. Silakan periksa kotak masuk atau spam!',
+        type: 'success',
+        confirmText: 'Lanjutkan',
+        onConfirm: () => {
+          router.push(`/(auth)/reset-password?email=${encodeURIComponent(email)}` as any);
         }
-      ]);
+      });
     } catch (e: any) {
       console.log('Forgot password request failed', e);
       setError(e.response?.data?.error || 'Gagal memproses permintaan reset sandi. Pastikan email terdaftar.');
