@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Map as MapIcon, PlusCircle, MessageSquare, User } from 'lucide-react-native';
+import { Home, Map as MapIcon, PlusCircle, MessageSquare, User, FileText } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
 
@@ -37,7 +37,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Beranda',
+          title: 'Dashboard',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
               <Home color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
@@ -48,7 +48,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: 'Peta',
+          title: 'Peta Laporan',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
               <MapIcon color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
@@ -59,7 +59,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="create-report"
         options={{
-          title: 'Lapor',
+          title: 'Buat Laporan',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2.5 rounded-full ${focused ? 'bg-emerald-500/15' : 'bg-transparent'}`} style={{ marginTop: -4 }}>
               <PlusCircle color={focused ? '#10b981' : color} size={24} strokeWidth={focused ? 2.5 : 2} />
@@ -70,7 +70,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: 'Chat AI',
+          title: 'Tanya AI',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
               <MessageSquare color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
@@ -79,9 +79,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Riwayat',
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
+              <FileText color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: 'Profil Saya',
           tabBarIcon: ({ color, focused }) => (
             <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
               <User color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
