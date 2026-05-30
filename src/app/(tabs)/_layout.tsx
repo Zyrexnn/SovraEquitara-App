@@ -1,36 +1,41 @@
 import { Tabs } from 'expo-router';
 import { Home, Map as MapIcon, PlusCircle, MessageSquare, User, FileText } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
+  const activeBgClass = isDark ? 'bg-stone-100' : 'bg-stone-900';
+  const activeIconColor = isDark ? '#000000' : '#ffffff';
+  const inactiveIconColor = isDark ? '#78716c' : '#78716c';
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: isDark ? '#0B0B0F' : '#FAFAF9',
+          backgroundColor: isDark ? '#0c0a09' : '#ffffff',
           borderTopWidth: 1,
-          borderTopColor: isDark ? '#1E293B' : '#E7E5E4',
-          elevation: 10,
-          shadowColor: '#000',
+          borderTopColor: isDark ? '#292524' : '#e7e5e4',
+          elevation: 8,
+          shadowColor: '#000000',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.3 : 0.04,
-          shadowRadius: 15,
-          height: 68,
-          paddingBottom: 10,
-          paddingTop: 8,
+          shadowOpacity: isDark ? 0.4 : 0.03,
+          shadowRadius: 12,
+          height: 72,
+          paddingBottom: 14,
+          paddingTop: 10,
         },
-        tabBarActiveTintColor: '#10b981', // Emerald 500
-        tabBarInactiveTintColor: isDark ? '#6b7280' : '#9ca3af',
+        tabBarActiveTintColor: isDark ? '#ffffff' : '#000000',
+        tabBarInactiveTintColor: '#78716c',
         tabBarLabelStyle: {
           fontFamily: 'Inter',
-          fontSize: 10,
-          fontWeight: '700',
-          marginTop: 2,
+          fontSize: 8.5,
+          fontWeight: '900',
+          letterSpacing: 0.4,
+          marginTop: 4,
         },
       }}
     >
@@ -39,8 +44,8 @@ export default function TabsLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
-              <Home color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <Home color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -48,10 +53,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: 'Peta Laporan',
+          title: 'Peta',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
-              <MapIcon color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <MapIcon color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -59,10 +64,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="create-report"
         options={{
-          title: 'Buat Laporan',
+          title: 'Lapor',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2.5 rounded-full ${focused ? 'bg-emerald-500/15' : 'bg-transparent'}`} style={{ marginTop: -4 }}>
-              <PlusCircle color={focused ? '#10b981' : color} size={24} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-full items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <PlusCircle color={focused ? activeIconColor : inactiveIconColor} size={20} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -72,8 +77,8 @@ export default function TabsLayout() {
         options={{
           title: 'Tanya AI',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
-              <MessageSquare color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <MessageSquare color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -83,8 +88,8 @@ export default function TabsLayout() {
         options={{
           title: 'Riwayat',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
-              <FileText color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <FileText color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -92,19 +97,18 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil Saya',
+          title: 'Profil',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`p-2 rounded-xl ${focused ? 'bg-emerald-500/10' : 'bg-transparent'}`}>
-              <User color={color} size={20} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <User color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
       />
-      {/* Hide the reports index/detail from bottom tabs but keep them accessible in the (tabs) layout */}
       <Tabs.Screen
         name="reports/[id]"
         options={{
-          href: null, // Hide from tab bar
+          href: null,
         }}
       />
     </Tabs>
