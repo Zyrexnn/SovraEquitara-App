@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { ZenInput } from '../../components/ui/ZenInput';
 import { ZenButton } from '../../components/ui/ZenButton';
 import { BentoCard } from '../../components/ui/BentoCard';
-import { ArrowLeft, Megaphone, Info, AlertTriangle, ShieldAlert } from 'lucide-react-native';
+import { ArrowLeft, Megaphone, Info, AlertTriangle, ShieldAlert, Trash2, Edit2, X } from 'lucide-react-native';
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  target_role: string;
+  created_at: string;
+}
 
 export default function AdminBroadcastScreen() {
   const router = useRouter();
@@ -16,7 +25,67 @@ export default function AdminBroadcastScreen() {
   const [targetRole, setTargetRole] = useState<'ALL' | 'CITIZEN' | 'ADMIN'>('ALL');
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setIsFetching(true);
+      const res = await apiClient.get('/notifications');
+      setNotifications(res.data.data || []);
+    } catch (e) {
+      console.log('Failed to fetch notifications', e);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setMessage('');
+    setType('INFO');
+    setTargetRole('ALL');
+    setEditingId(null);
+    setError('');
+  };
+
+  const handleEdit = (notif: Notification) => {
+    setTitle(notif.title);
+    setMessage(notif.message);
+    setType(notif.type as 'INFO' | 'EMERGENCY');
+    setTargetRole(notif.target_role === 'USER' ? 'CITIZEN' : notif.target_role === 'SUPERADMIN' ? 'ADMIN' : notif.target_role as any);
+    setEditingId(notif.id);
+  };
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      'Hapus Pengumuman',
+      'Apakah Anda yakin ingin menghapus pengumuman ini?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        { 
+          text: 'Hapus', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiClient.delete(`/admin/notifications/${id}`);
+              fetchNotifications();
+              if (editingId === id) resetForm();
+            } catch (e: any) {
+              Alert.alert('Error', e.response?.data?.error || 'Gagal menghapus notifikasi');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleSend = async () => {
     if (!title.trim()) {
@@ -32,20 +101,25 @@ export default function AdminBroadcastScreen() {
     setError('');
 
     try {
-      await apiClient.post('/admin/notifications', {
+      const payload = {
         title: title.trim(),
         message: message.trim(),
         type: type,
         target_role: targetRole === 'CITIZEN' ? 'USER' : targetRole,
-      });
+      };
 
-      Alert.alert(
-        'Sukses',
-        'Pengumuman berhasil disebarluaskan ke seluruh sistem.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      if (editingId) {
+        await apiClient.put(`/admin/notifications/${editingId}`, payload);
+        Alert.alert('Sukses', 'Pengumuman berhasil diperbarui.');
+      } else {
+        await apiClient.post('/admin/notifications', payload);
+        Alert.alert('Sukses', 'Pengumuman berhasil disebarluaskan ke seluruh sistem.');
+      }
+      
+      resetForm();
+      fetchNotifications();
     } catch (e: any) {
-      console.log('Error creating broadcast notification', e);
+      console.log('Error creating/updating broadcast notification', e);
       setError(e.response?.data?.error || 'Gagal mengirimkan pengumuman.');
     } finally {
       setIsLoading(false);
@@ -75,7 +149,9 @@ export default function AdminBroadcastScreen() {
               <Megaphone color="white" size={20} />
             </View>
             <View className="flex-1">
-              <Text className="font-display font-bold text-purple-900 dark:text-purple-300 text-base">Kirim Pesan Publik</Text>
+              <Text className="font-display font-bold text-purple-900 dark:text-purple-300 text-base">
+                {editingId ? 'Edit Pesan Publik' : 'Kirim Pesan Publik'}
+              </Text>
               <Text className="font-sans text-purple-700 dark:text-purple-400 text-xs leading-relaxed mt-1">
                 Pesan yang Anda kirim akan langsung muncul di dasbor Warga/Admin yang ditargetkan. Gunakan dengan bijak untuk pengumuman penting atau darurat.
               </Text>
@@ -84,7 +160,7 @@ export default function AdminBroadcastScreen() {
         </BentoCard>
 
         {/* Form Card */}
-        <BentoCard className="p-5">
+        <BentoCard className="p-5 mb-6">
           <ZenInput
             label="Judul Pengumuman"
             placeholder="Contoh: Kerja Bakti Massal RT 05"
@@ -161,13 +237,60 @@ export default function AdminBroadcastScreen() {
             ))}
           </View>
 
-          <ZenButton 
-            label="Kirim Broadcast Sekarang" 
-            className="bg-purple-600" 
-            isLoading={isLoading} 
-            onPress={handleSend} 
-          />
+          <View className="flex-row gap-2">
+            {editingId && (
+              <TouchableOpacity 
+                onPress={resetForm}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 py-4 rounded-2xl items-center justify-center"
+              >
+                <Text className="font-sans font-bold text-gray-700 dark:text-gray-300">Batal</Text>
+              </TouchableOpacity>
+            )}
+            <ZenButton 
+              label={editingId ? "Update Broadcast" : "Kirim Broadcast Sekarang"} 
+              className={`flex-1 ${editingId ? 'bg-emerald-600' : 'bg-purple-600'}`}
+              isLoading={isLoading} 
+              onPress={handleSend} 
+            />
+          </View>
         </BentoCard>
+
+        {/* History List */}
+        <Text className="font-display font-bold text-lg text-gray-900 dark:text-white mb-4">Riwayat Pengumuman</Text>
+        {isFetching ? (
+          <ActivityIndicator color="#8b5cf6" />
+        ) : notifications.length === 0 ? (
+          <Text className="font-sans text-center text-gray-500 dark:text-gray-400">Belum ada pengumuman.</Text>
+        ) : (
+          notifications.map(notif => (
+            <BentoCard key={notif.id} className="p-4 mb-3">
+              <View className="flex-row justify-between items-start mb-2">
+                <View className="flex-1 pr-2">
+                  <View className="flex-row items-center mb-1">
+                    <Text className="font-display font-bold text-base text-gray-900 dark:text-white flex-1">{notif.title}</Text>
+                    {notif.type === 'EMERGENCY' && (
+                      <View className="bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded ml-2">
+                        <Text className="font-sans text-[10px] text-red-600 dark:text-red-400 font-bold">EMERGENCY</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    {new Date(notif.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} • To: {notif.target_role}
+                  </Text>
+                </View>
+                <View className="flex-row">
+                  <TouchableOpacity onPress={() => handleEdit(notif)} className="p-2">
+                    <Edit2 size={16} color="#6366f1" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDelete(notif.id)} className="p-2">
+                    <Trash2 size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text className="font-sans text-sm text-gray-700 dark:text-gray-300" numberOfLines={2}>{notif.message}</Text>
+            </BentoCard>
+          ))
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
