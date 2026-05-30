@@ -8,7 +8,7 @@ import { BentoCard } from '../../components/ui/BentoCard';
 import { AppLogo } from '../../components/ui/AppLogo';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
-import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon, Bookmark } from 'lucide-react-native';
+import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon, Bookmark, ArrowRight } from 'lucide-react-native';
 import { SuperAdminDashboardView } from '../superadmin';
 
 export default function AdminDashboardScreen() {
@@ -132,7 +132,7 @@ export default function AdminDashboardScreen() {
     };
   })();
 
-  // Admin Dashboard ChartJS HTML String
+  // Admin Dashboard ChartJS HTML String (Monochromatic Theme)
   const adminChartHtml = `
     <!DOCTYPE html>
     <html>
@@ -178,12 +178,13 @@ export default function AdminDashboardScreen() {
       <script>
         var textColor = ${isDark ? "'#d6d3d1'" : "'#44403c'"};
         var gridColor = ${isDark ? "'rgba(255, 255, 255, 0.08)'" : "'rgba(0, 0, 0, 0.05)'"};
+        var primaryColor = ${isDark ? "'#ffffff'" : "'#000000'"};
 
         // 1. Line Chart: Trend
         var trendCtx = document.getElementById('trendChart').getContext('2d');
         var trendGrad = trendCtx.createLinearGradient(0, 0, 0, 150);
-        trendGrad.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
-        trendGrad.addColorStop(1, 'rgba(99, 102, 241, 0.01)');
+        trendGrad.addColorStop(0, ${isDark ? "'rgba(255, 255, 255, 0.35)'" : "'rgba(0, 0, 0, 0.35)'"});
+        trendGrad.addColorStop(1, ${isDark ? "'rgba(255, 255, 255, 0.01)'" : "'rgba(0, 0, 0, 0.01)'"});
 
         new Chart(trendCtx, {
           type: 'line',
@@ -191,12 +192,12 @@ export default function AdminDashboardScreen() {
             labels: ${JSON.stringify(trendData.labels)},
             datasets: [{
               data: ${JSON.stringify(trendData.data)},
-              borderColor: '#6366f1',
+              borderColor: primaryColor,
               borderWidth: 2.5,
               backgroundColor: trendGrad,
               fill: true,
               tension: 0.3,
-              pointBackgroundColor: '#6366f1',
+              pointBackgroundColor: primaryColor,
               pointRadius: 3
             }]
           },
@@ -232,7 +233,7 @@ export default function AdminDashboardScreen() {
             labels: ${JSON.stringify(categoryDistribution.labels)},
             datasets: [{
               data: ${JSON.stringify(categoryDistribution.data)},
-              backgroundColor: '#10b981',
+              backgroundColor: primaryColor,
               borderRadius: 6,
               barThickness: 12
             }]
@@ -268,71 +269,78 @@ export default function AdminDashboardScreen() {
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
-      <ScrollView 
-        contentContainerStyle={{ padding: 16, paddingTop: 60, paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {/* Header */}
-        <View className="mb-8 flex-row justify-between items-center">
-          <View className="flex-1 mr-3">
-            <AppLogo width={160} height={60} className="self-start -ml-3" />
-            <Text className="font-sans text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
-              Selamat bertugas, {user?.full_name || 'Admin'}.
+      {/* Premium Sticky Navbar */}
+      <View className="pt-14 pb-4 px-5 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center justify-between shadow-sm z-10">
+        <View className="flex-row items-center flex-1 mr-2">
+          <View className="flex-1">
+            <AppLogo width={120} height={40} className="self-start -ml-2" />
+            <Text className="font-sans text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">
+              Admin Console • {new Date().toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
             </Text>
           </View>
-          <View className="flex-row items-center gap-2.5">
-            <View className="bg-zen-surface dark:bg-zen-darkSurface px-3 py-1.5 rounded-full border border-zen-border dark:border-zen-borderDark">
-              <Text className="font-sans font-bold text-gray-500 dark:text-gray-400 text-[10px] uppercase">
-                {new Date().toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
-              </Text>
-            </View>
-
-            <View className="bg-indigo-500/10 dark:bg-indigo-500/20 px-3.5 py-1.5 rounded-full border border-indigo-500/10 flex-row items-center">
-              <Shield color="#6366f1" size={12} className="mr-1.5" />
-              <Text className="font-display font-black text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">
-                {user?.role || 'ADMIN'}
-              </Text>
-            </View>
-
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              onPress={toggleColorScheme} 
-              className="p-2.5 bg-white dark:bg-zen-cardDark rounded-full border border-zen-border dark:border-zen-borderDark shadow-sm"
-            >
-              {isDark ? (
-                <Sun color="#f59e0b" size={18} />
-              ) : (
-                <Moon color="#6366f1" size={18} />
-              )}
-            </TouchableOpacity>
+        </View>
+        
+        <View className="flex-row items-center gap-2.5">
+          <View className="bg-black dark:bg-white px-3 py-1.5 rounded-full border border-gray-900 dark:border-gray-100 flex-row items-center">
+            <Shield color={isDark ? "black" : "white"} size={10} className="mr-1.5" />
+            <Text className="font-display font-black text-white dark:text-black text-[9px] uppercase tracking-wider">
+              {user?.role || 'ADMIN'}
+            </Text>
           </View>
+
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={toggleColorScheme} 
+            className="p-2 bg-gray-50 dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm"
+          >
+            {isDark ? (
+              <Sun color="#A1A1AA" size={16} />
+            ) : (
+              <Moon color="#787774" size={16} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView 
+        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Welcome Text */}
+        <View className="mb-6 mt-2">
+          <Text className="font-display text-2xl font-black text-gray-900 dark:text-white">
+            Halo, {user?.full_name?.split(' ')[0] || 'Admin'}
+          </Text>
+          <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+            Pantau laporan terkini dan bantu warga kota hari ini.
+          </Text>
         </View>
 
-        {/* Stats Bento Grid */}
-        <View className="mb-5">
+        {/* 4-Square Grid Stats */}
+        <View className="mb-6">
           <View className="flex-row gap-4 mb-4">
             {/* Total Laporan */}
             <View className="flex-1">
-              <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
-                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                  <FileText color="#6366f1" size={16} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-6 h-36 justify-between shadow-none">
+                <View className="p-3 bg-white dark:bg-zinc-800 rounded-2xl self-start border border-gray-200 dark:border-zinc-700">
+                  <FileText color={isDark ? "white" : "black"} size={18} />
                 </View>
                 <View>
-                  <Text className="font-display text-2xl font-black text-indigo-600 dark:text-indigo-400">{stats.total}</Text>
-                  <Text className="font-sans text-[10px] font-bold text-indigo-700/80 dark:text-indigo-300/85 uppercase tracking-wider mt-0.5">Total Laporan</Text>
+                  <Text className="font-display text-4xl font-black text-gray-900 dark:text-white">{stats.total}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Total Laporan</Text>
                 </View>
               </BentoCard>
             </View>
 
             {/* Pending Review */}
             <View className="flex-1">
-              <BentoCard className="bg-amber-50/70 border border-amber-100/10 dark:bg-amber-950/20 dark:border-amber-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
-                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                  <Clock color="#d97706" size={16} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-6 h-36 justify-between shadow-none">
+                <View className="p-3 bg-white dark:bg-zinc-800 rounded-2xl self-start border border-gray-200 dark:border-zinc-700">
+                  <Clock color={isDark ? "white" : "black"} size={18} />
                 </View>
                 <View>
-                  <Text className="font-display text-2xl font-black text-[#d97706] dark:text-amber-400">{stats.pending}</Text>
-                  <Text className="font-sans text-[10px] font-bold text-amber-700/80 dark:text-amber-300/85 uppercase tracking-wider mt-0.5">Pending</Text>
+                  <Text className="font-display text-4xl font-black text-gray-900 dark:text-white">{stats.pending}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Pending</Text>
                 </View>
               </BentoCard>
             </View>
@@ -341,26 +349,26 @@ export default function AdminDashboardScreen() {
           <View className="flex-row gap-4">
             {/* Terverifikasi */}
             <View className="flex-1">
-              <BentoCard className="bg-emerald-50/70 border border-emerald-100/10 dark:bg-emerald-950/20 dark:border-emerald-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
-                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                  <CheckCircle color="#10b981" size={16} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-6 h-36 justify-between shadow-none">
+                <View className="p-3 bg-white dark:bg-zinc-800 rounded-2xl self-start border border-gray-200 dark:border-zinc-700">
+                  <CheckCircle color={isDark ? "white" : "black"} size={18} />
                 </View>
                 <View>
-                  <Text className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.verified}</Text>
-                  <Text className="font-sans text-[10px] font-bold text-emerald-700/80 dark:text-emerald-300/85 uppercase tracking-wider mt-0.5">Terverifikasi</Text>
+                  <Text className="font-display text-4xl font-black text-gray-900 dark:text-white">{stats.verified}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Diproses</Text>
                 </View>
               </BentoCard>
             </View>
 
             {/* Terselesaikan */}
             <View className="flex-1">
-              <BentoCard className="bg-blue-50/70 border border-blue-100/10 dark:bg-blue-950/20 dark:border-blue-900/15 p-4 rounded-3xl h-32 justify-between shadow-none">
-                <View className="p-2 bg-white dark:bg-zinc-900 rounded-xl self-start shadow-sm">
-                  <CheckCircle color="#3b82f6" size={16} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-6 h-36 justify-between shadow-none">
+                <View className="p-3 bg-white dark:bg-zinc-800 rounded-2xl self-start border border-gray-200 dark:border-zinc-700">
+                  <CheckCircle color={isDark ? "white" : "black"} size={18} />
                 </View>
                 <View>
-                  <Text className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">{stats.resolved}</Text>
-                  <Text className="font-sans text-[10px] font-bold text-blue-700/80 dark:text-blue-300/85 uppercase tracking-wider mt-0.5">Selesai</Text>
+                  <Text className="font-display text-4xl font-black text-gray-900 dark:text-white">{stats.resolved}</Text>
+                  <Text className="font-sans text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Selesai</Text>
                 </View>
               </BentoCard>
             </View>
@@ -370,8 +378,8 @@ export default function AdminDashboardScreen() {
         {/* Grafik Tren & Spasial Analitis Kota */}
         {reports.length > 0 && (
           <View className="mb-6">
-            <BentoCard className="h-[490px] rounded-3xl p-5 shadow-none">
-              <Text className="font-display font-bold text-gray-900 dark:text-white text-base mb-4">Tren & Distribusi Aduan Wilayah</Text>
+            <BentoCard className="h-[490px] rounded-[32px] p-6 shadow-none border border-gray-200 dark:border-zinc-800">
+              <Text className="font-display font-bold text-gray-900 dark:text-white text-base mb-4">Statistik Performa</Text>
               <View className="flex-1 w-full bg-transparent">
                 <WebView
                   originWhitelist={['*']}
@@ -386,7 +394,7 @@ export default function AdminDashboardScreen() {
 
         {/* Fitur Administrasi Bento Cards */}
         <View className="mb-6">
-          <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pl-1">
+          <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 pl-1">
             Tindakan Admin
           </Text>
           
@@ -396,13 +404,13 @@ export default function AdminDashboardScreen() {
               onPress={() => router.push('/(admin-tabs)/broadcast' as any)}
               className="flex-1"
             >
-              <BentoCard className="bg-purple-50/70 border border-purple-100/10 dark:bg-purple-950/20 dark:border-purple-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
-                <View className="p-2 bg-purple-500 rounded-xl self-start shadow-sm">
-                  <Megaphone color="white" size={18} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-5 h-36 justify-between shadow-none rounded-[28px]">
+                <View className="p-3 bg-black dark:bg-white rounded-2xl self-start shadow-sm border border-gray-200 dark:border-zinc-700">
+                  <Megaphone color={isDark ? "black" : "white"} size={20} />
                 </View>
                 <View>
-                  <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Kirim Pengumuman</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[9px] mt-0.5 leading-normal">Broadcast ke semua warga kota</Text>
+                  <Text className="font-display font-bold text-gray-900 dark:text-white text-base">Broadcast</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-1">Kirim pengumuman</Text>
                 </View>
               </BentoCard>
             </TouchableOpacity>
@@ -412,13 +420,13 @@ export default function AdminDashboardScreen() {
               onPress={() => router.push('/(admin-tabs)/helpdesk' as any)}
               className="flex-1"
             >
-              <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
-                <View className="p-2 bg-indigo-500 rounded-xl self-start shadow-sm">
-                  <MessageSquare color="white" size={18} />
+              <BentoCard className="bg-gray-50 dark:bg-zinc-900/50 p-5 h-36 justify-between shadow-none rounded-[28px]">
+                <View className="p-3 bg-black dark:bg-white rounded-2xl self-start shadow-sm border border-gray-200 dark:border-zinc-700">
+                  <MessageSquare color={isDark ? "black" : "white"} size={20} />
                 </View>
                 <View>
-                  <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Kotak Bantuan</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[9px] mt-0.5 leading-normal">Pantau chat AI & warga kota</Text>
+                  <Text className="font-display font-bold text-gray-900 dark:text-white text-base">Helpdesk</Text>
+                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-1">Pantau chat warga</Text>
                 </View>
               </BentoCard>
             </TouchableOpacity>
@@ -429,19 +437,19 @@ export default function AdminDashboardScreen() {
             onPress={() => router.push('/admin/ai-assistant' as any)}
             className="w-full"
           >
-            <BentoCard className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100/10 dark:border-emerald-900/15 p-4 h-28 flex-row items-center justify-between shadow-none rounded-3xl">
-              <View className="flex-row items-center flex-1 mr-3">
-                <View className="p-3 bg-emerald-500 rounded-2xl mr-4 shadow-sm">
-                  <Sparkles color="white" size={22} />
+            <BentoCard className="bg-black dark:bg-white p-6 h-36 flex-row items-center justify-between shadow-none rounded-[28px]">
+              <View className="flex-row items-center flex-1 mr-4">
+                <View className="p-4 bg-white/10 dark:bg-black/5 rounded-2xl mr-4 shadow-sm border border-white/20 dark:border-black/10">
+                  <Sparkles color={isDark ? "black" : "white"} size={24} />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-display font-bold text-gray-900 dark:text-white text-sm">Asisten AI Analitis</Text>
-                  <Text className="font-sans text-gray-500 dark:text-gray-400 text-[10px] mt-0.5 leading-relaxed" numberOfLines={2}>
-                    Analisis kepadatan masalah kota dan rumuskan tanggapan aduan keluhan warga secara cerdas.
+                  <Text className="font-display font-black text-white dark:text-black text-xl mb-1">AI Assistant</Text>
+                  <Text className="font-sans text-gray-400 dark:text-gray-600 text-xs leading-relaxed" numberOfLines={2}>
+                    Analisis sentimen dan buat draf tanggapan otomatis.
                   </Text>
                 </View>
               </View>
-              <Text className="font-sans text-emerald-500 dark:text-emerald-400 font-bold text-base">→</Text>
+              <ArrowRight color={isDark ? "black" : "white"} size={24} />
             </BentoCard>
           </TouchableOpacity>
         </View>

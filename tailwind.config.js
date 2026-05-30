@@ -6,27 +6,26 @@ module.exports = {
     extend: {
       colors: {
         zen: {
-          bg: "#FAFAF9",
+          bg: "#FAF9F6",
           darkBg: "#000000",
           card: "#FFFFFF",
-          cardDark: "#0B0B0F",
-          cardBg: "#FFFFFF",
-          surface: "#f5f5f5",
+          cardDark: "#0C0C0E",
+          surface: "#FFFFFF",
           darkSurface: "#111111",
-          border: "#f0f0f0",
-          borderDark: "#1E293B",
-          text: "#1a1a1a",
-          textDark: "#ffffff",
-          muted: "#a3a3a3",
-          mutedDark: "#64748b",
-          accent: "#10b981", // Emerald 500
-          accentHover: "#059669", // Emerald 600
+          border: "#EAEAEA",
+          borderDark: "#1f1f22",
+          text: "#1C1917",
+          textDark: "#F5F5F0",
+          muted: "#787774",
+          mutedDark: "#A1A1AA",
+          accent: "#000000",
+          accentHover: "#333333",
         },
         status: {
-          pending: "#f59e0b", // Amber 500
-          valid: "#3b82f6", // Blue 500
-          resolved: "#10b981", // Emerald 500
-          rejected: "#ef4444", // Red 500
+          pending: "#f59e0b",
+          valid: "#3b82f6",
+          resolved: "#10b981",
+          rejected: "#ef4444",
         }
       },
       fontFamily: {
@@ -36,10 +35,10 @@ module.exports = {
       borderRadius: {
         '2xl': '1rem',
         '3xl': '1.5rem',
-        'bento': '2rem', // Exteme rounded for Bento Box
+        'bento': '24px', 
       },
       boxShadow: {
-        'zen': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        'zen': '0 2px 8px -2px rgba(0, 0, 0, 0.02), 0 4px 16px -4px rgba(0, 0, 0, 0.02)',
       }
     },
   },

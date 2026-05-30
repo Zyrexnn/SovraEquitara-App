@@ -247,8 +247,8 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">
-      {/* Header */}
-      <View className="pt-14 pb-4 px-4 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center justify-between shadow-sm">
+      {/* Premium Sticky Navbar */}
+      <View className="pt-14 pb-4 px-5 bg-white dark:bg-zen-cardDark border-b border-zen-border dark:border-zen-borderDark flex-row items-center justify-between shadow-sm z-10">
         <View className="flex-row items-center flex-1 mr-2">
           {isStandalone && (
             <TouchableOpacity 
@@ -260,35 +260,29 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
             </TouchableOpacity>
           )}
           <View className="flex-1">
-            <AppLogo width={120} height={45} className="self-start -ml-2" />
-            <Text className="font-sans text-[9px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-wider mt-0.5">
-              Super Admin Console
+            <AppLogo width={120} height={40} className="self-start -ml-2" />
+            <Text className="font-sans text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-1">
+              Super Admin • {timeString || '--:--:-- WIB'}
             </Text>
           </View>
         </View>
         
-        <View className="flex-row items-center gap-2">
-          <View className="bg-zen-surface dark:bg-zen-darkSurface px-2.5 py-1.5 rounded-full border border-zen-border dark:border-zen-borderDark shrink-0">
-            <Text className="font-sans font-black text-gray-500 dark:text-gray-400 text-[8px] uppercase tracking-wider">
-              {timeString || '--:--:-- WIB'}
-            </Text>
-          </View>
-
+        <View className="flex-row items-center gap-2.5">
           <TouchableOpacity 
             activeOpacity={0.8}
             onPress={toggleColorScheme} 
-            className="p-2 bg-gray-50 dark:bg-gray-800 rounded-full border border-zen-border dark:border-zen-borderDark"
+            className="p-2 bg-gray-50 dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm"
           >
             {isDark ? (
-              <Sun color="#f59e0b" size={16} />
+              <Sun color="#A1A1AA" size={16} />
             ) : (
-              <Moon color="#6366f1" size={16} />
+              <Moon color="#787774" size={16} />
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
             onPress={() => router.push('/profile/edit' as any)}
-            className="p-2 bg-gray-50 dark:bg-gray-800 rounded-full border border-zen-border dark:border-zen-borderDark"
+            className="p-2 bg-gray-50 dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm"
             activeOpacity={0.8}
           >
             <Settings color={iconColor} size={16} />
@@ -297,15 +291,25 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
       </View>
 
       <ScrollView 
-        contentContainerStyle={{ padding: 16, paddingTop: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {isLoading ? (
           <View className="py-12 justify-center items-center">
-            <ActivityIndicator size="small" color="#6366f1" />
+            <ActivityIndicator size="small" color={isDark ? "#ffffff" : "#000000"} />
           </View>
         ) : (
           <>
+            {/* Welcome Text */}
+            <View className="mb-6 mt-2">
+              <Text className="font-display text-2xl font-black text-gray-900 dark:text-white">
+                Halo, Super Admin
+              </Text>
+              <Text className="font-sans text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+                Kendali penuh atas sistem dan seluruh manajemen infrastruktur kota.
+              </Text>
+            </View>
+
             {/* Compact Stats Row */}
             <View className="flex-row gap-2.5 mb-5">
               {/* Total */}

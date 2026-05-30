@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, useColorScheme } from 'react-native';
 
 interface ZenButtonProps extends TouchableOpacityProps {
   label: string;
@@ -8,15 +8,18 @@ interface ZenButtonProps extends TouchableOpacityProps {
 }
 
 export function ZenButton({ label, variant = 'primary', isLoading, className = '', ...props }: ZenButtonProps) {
-  let bgClass = 'bg-zen-accent active:bg-zen-accentHover';
-  let textClass = 'text-white';
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  let bgClass = 'bg-black dark:bg-white active:opacity-80';
+  let textClass = 'text-white dark:text-black';
 
   if (variant === 'secondary') {
-    bgClass = 'bg-gray-200 dark:bg-gray-800 active:bg-gray-300 dark:active:bg-gray-700';
-    textClass = 'text-gray-900 dark:text-gray-100';
+    bgClass = 'bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 active:bg-gray-50 dark:active:bg-zinc-900';
+    textClass = 'text-black dark:text-white';
   } else if (variant === 'ghost') {
-    bgClass = 'bg-transparent active:bg-gray-100 dark:active:bg-gray-800';
-    textClass = 'text-zen-accent';
+    bgClass = 'bg-transparent active:bg-gray-100 dark:active:bg-zinc-800';
+    textClass = 'text-black dark:text-white';
   }
 
   return (
@@ -26,9 +29,9 @@ export function ZenButton({ label, variant = 'primary', isLoading, className = '
       {...props}
     >
       {isLoading ? (
-        <ActivityIndicator color={variant === 'primary' ? 'white' : '#10b981'} />
+        <ActivityIndicator color={variant === 'primary' ? (isDark ? '#000000' : '#ffffff') : '#888888'} />
       ) : (
-        <Text className={`font-display font-semibold text-base ${textClass}`}>{label}</Text>
+        <Text className={`font-display font-bold text-sm tracking-wide ${textClass}`}>{label}</Text>
       )}
     </TouchableOpacity>
   );

@@ -2,44 +2,55 @@ import React from 'react';
 import { View, Text } from 'react-native';
 
 interface StatusBadgeProps {
-  status: 'PENDING' | 'VALID' | 'RESOLVED' | 'REJECTED';
+  status: string; // Accept any string, normalize internally
+  size?: 'sm' | 'md';
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
-  let bgClass = '';
-  let textClass = '';
-  let label = '';
+export function StatusBadge({ status, size = 'sm' }: StatusBadgeProps) {
+  const normalized = (status || '').toUpperCase();
 
-  switch (status) {
+  let dotColor = '#9ca3af';
+  let label = 'Unknown';
+  let containerClass = 'bg-stone-100 dark:bg-stone-800/60 border-stone-200/60 dark:border-stone-700/40';
+  let textClass = 'text-stone-500 dark:text-stone-400';
+
+  switch (normalized) {
     case 'PENDING':
-      bgClass = 'bg-status-pending/10';
-      textClass = 'text-status-pending';
-      label = 'Pending';
+      dotColor = '#f59e0b';
+      label = 'Menunggu';
+      containerClass = 'bg-amber-50 dark:bg-amber-950/30 border-amber-200/50 dark:border-amber-800/30';
+      textClass = 'text-amber-700 dark:text-amber-400';
       break;
     case 'VALID':
-      bgClass = 'bg-status-valid/10';
-      textClass = 'text-status-valid';
+      dotColor = '#3b82f6';
       label = 'Diproses';
+      containerClass = 'bg-blue-50 dark:bg-blue-950/30 border-blue-200/50 dark:border-blue-800/30';
+      textClass = 'text-blue-700 dark:text-blue-400';
       break;
     case 'RESOLVED':
-      bgClass = 'bg-status-resolved/10';
-      textClass = 'text-status-resolved';
+      dotColor = '#10b981';
       label = 'Selesai';
+      containerClass = 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/50 dark:border-emerald-800/30';
+      textClass = 'text-emerald-700 dark:text-emerald-400';
       break;
     case 'REJECTED':
-      bgClass = 'bg-status-rejected/10';
-      textClass = 'text-status-rejected';
+      dotColor = '#ef4444';
       label = 'Ditolak';
+      containerClass = 'bg-red-50 dark:bg-red-950/30 border-red-200/50 dark:border-red-800/30';
+      textClass = 'text-red-700 dark:text-red-400';
       break;
-    default:
-      bgClass = 'bg-gray-100';
-      textClass = 'text-gray-500';
-      label = 'Unknown';
   }
 
+  const isSmall = size === 'sm';
+
   return (
-    <View className={`px-3 py-1 rounded-full ${bgClass} self-start`}>
-      <Text className={`font-sans text-xs font-semibold ${textClass}`}>{label}</Text>
+    <View className={`flex-row items-center self-start border rounded-full ${containerClass} ${isSmall ? 'px-2.5 py-1' : 'px-3 py-1.5'}`}>
+      <View
+        style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: dotColor, marginRight: 5 }}
+      />
+      <Text className={`font-sans font-bold ${isSmall ? 'text-[10px]' : 'text-xs'} ${textClass}`}>
+        {label}
+      </Text>
     </View>
   );
 }
