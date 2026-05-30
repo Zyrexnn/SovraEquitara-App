@@ -66,7 +66,10 @@ export default function ChatScreen() {
       setIsLoading(true);
 
       try {
-        const response = await apiClient.post('/ai-assistant', { prompt: userMessage });
+        const response = await apiClient.post('/ai-assistant', {
+          query: userMessage,
+          model: 'local'
+        });
         setAiMessages([...newMessages, {
           id: (Date.now() + 1).toString(),
           text: response.data?.response || response.data?.answer || 'Maaf, saya tidak mengerti.',

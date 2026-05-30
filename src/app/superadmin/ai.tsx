@@ -32,7 +32,10 @@ export default function SuperAdminAIScreen() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post('/ai-assistant', { prompt: userMessage });
+      const response = await apiClient.post('/admin/ai-assistant', {
+        query: userMessage,
+        model: 'gemini'
+      });
       setMessages([...newMessages, {
         id: (Date.now() + 1).toString(),
         text: response.data?.response || response.data?.answer || 'Maaf, saya tidak mengerti.',
