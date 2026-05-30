@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { AppLogo } from '../../components/ui/AppLogo';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { WebView } from 'react-native-webview';
 import { Search, Shield, Filter, FileText, CheckCircle, Clock, AlertTriangle, Megaphone, MessageSquare, Sparkles, Sun, Moon, Bookmark } from 'lucide-react-native';
@@ -274,9 +275,7 @@ export default function AdminDashboardScreen() {
         {/* Header */}
         <View className="mb-8 flex-row justify-between items-center">
           <View className="flex-1 mr-3">
-            <Text className="font-display text-3xl font-black text-gray-900 dark:text-white">
-              Konsol <Text className="text-indigo-500 dark:text-indigo-400">Staf</Text>
-            </Text>
+            <AppLogo width={160} height={60} className="self-start -ml-3" />
             <Text className="font-sans text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
               Selamat bertugas, {user?.full_name || 'Admin'}.
             </Text>
@@ -394,7 +393,7 @@ export default function AdminDashboardScreen() {
           <View className="flex-row gap-4 mb-4">
             <TouchableOpacity 
               activeOpacity={0.9} 
-              onPress={() => router.push('/admin/broadcast' as any)}
+              onPress={() => router.push('/(admin-tabs)/broadcast' as any)}
               className="flex-1"
             >
               <BentoCard className="bg-purple-50/70 border border-purple-100/10 dark:bg-purple-950/20 dark:border-purple-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
@@ -410,7 +409,7 @@ export default function AdminDashboardScreen() {
 
             <TouchableOpacity 
               activeOpacity={0.9} 
-              onPress={() => router.push('/admin/helpdesk' as any)}
+              onPress={() => router.push('/(admin-tabs)/helpdesk' as any)}
               className="flex-1"
             >
               <BentoCard className="bg-indigo-50/70 border border-indigo-100/10 dark:bg-indigo-950/20 dark:border-indigo-900/15 p-4 h-32 justify-between shadow-none rounded-3xl">
@@ -446,125 +445,6 @@ export default function AdminDashboardScreen() {
             </BentoCard>
           </TouchableOpacity>
         </View>
-
-        {/* Search & Filter Section */}
-        {/* Tab Toggle: Semua Laporan vs Laporan Tersimpan */}
-        <View className="flex-row bg-white dark:bg-zen-cardDark p-1.5 rounded-2xl border border-zen-border dark:border-zen-borderDark mb-4 shadow-sm">
-          <TouchableOpacity
-            onPress={() => setActiveTab('ALL')}
-            activeOpacity={0.8}
-            className={`flex-1 py-3 rounded-xl items-center justify-center ${
-              activeTab === 'ALL' ? 'bg-indigo-500' : 'bg-transparent'
-            }`}
-          >
-            <Text className={`font-display font-bold text-xs ${activeTab === 'ALL' ? 'text-white' : 'text-gray-500'}`}>
-              Semua Aduan Warga
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab('SAVED')}
-            activeOpacity={0.8}
-            className={`flex-1 py-3 rounded-xl items-center justify-center flex-row ${
-              activeTab === 'SAVED' ? 'bg-indigo-500' : 'bg-transparent'
-            }`}
-          >
-            <Bookmark color={activeTab === 'SAVED' ? 'white' : '#6b7280'} size={12} className="mr-1.5" />
-            <Text className={`font-display font-bold text-xs ${activeTab === 'SAVED' ? 'text-white' : 'text-gray-500'}`}>
-              Tersimpan ({savedReports.length})
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="mb-6 bg-white dark:bg-zen-cardDark p-4 rounded-[28px] border border-zen-border dark:border-zen-borderDark shadow-sm">
-          <View className="flex-row items-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-2xl mb-3 border border-zen-border/30 dark:border-zen-borderDark/40">
-            <Search color="#9ca3af" size={18} className="mr-2" />
-            <TextInput
-              placeholder="Cari laporan..."
-              placeholderTextColor="#9ca3af"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="flex-1 font-sans text-sm text-gray-900 dark:text-white"
-            />
-          </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-            {(['ALL', 'PENDING', 'VALID', 'RESOLVED'] as const).map((status) => (
-              <TouchableOpacity
-                key={status}
-                onPress={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-xl mr-2 flex-row items-center border ${
-                  statusFilter === status
-                    ? 'bg-indigo-500 border-indigo-500'
-                    : 'bg-gray-50 dark:bg-gray-800 border-zen-border dark:border-zen-borderDark'
-                }`}
-              >
-                <Text 
-                  className={`font-sans font-bold text-xs ${
-                    statusFilter === status
-                      ? 'text-white'
-                      : 'text-gray-600 dark:text-gray-400'
-                  }`}
-                >
-                  {status === 'ALL' ? 'Semua' : status}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Reports List */}
-        <Text className="font-display text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 pl-1">Laporan Masuk ({filteredReports.length})</Text>
-
-        {isLoading ? (
-          <View className="py-10 items-center justify-center">
-            <ActivityIndicator size="small" color="#6366f1" />
-          </View>
-        ) : filteredReports.length === 0 ? (
-          <View className="py-10 items-center">
-            <Text className="font-sans text-gray-500">Tidak ada laporan yang sesuai.</Text>
-          </View>
-        ) : (
-          filteredReports.map((report) => (
-            <TouchableOpacity 
-              key={report.id} 
-              activeOpacity={0.9}
-              onPress={() => router.push(`/admin/report/${report.id}` as any)}
-              className="mb-4"
-            >
-              <BentoCard className="p-0 overflow-hidden shadow-sm flex-row h-28 border border-gray-100 dark:border-gray-800/80 rounded-3xl">
-                {(report.image_urls && report.image_urls.length > 0) || report.image_url ? (
-                  <Image 
-                    source={{ uri: getImageUrl(report.image_urls?.[0] || report.image_url) }} 
-                    className="w-28 h-full bg-gray-200" 
-                  />
-                ) : (
-                  <View className="w-28 h-full bg-gray-100 dark:bg-gray-800 items-center justify-center">
-                    <Text className="font-sans text-gray-400 text-xs">Tidak ada foto</Text>
-                  </View>
-                )}
-                <View className="flex-1 p-3 justify-between">
-                  <View>
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="font-display font-bold text-gray-900 dark:text-white text-sm flex-1 mr-1" numberOfLines={1}>
-                        {report.category?.name || 'Laporan Umum'}
-                      </Text>
-                      <StatusBadge status={report.status} />
-                    </View>
-                    <Text className="font-sans text-gray-600 dark:text-gray-300 text-xs" numberOfLines={2}>
-                      {report.description}
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between items-center mt-1">
-                    <Text className="font-sans text-gray-400 text-[10px] flex-1 mr-1" numberOfLines={1}>
-                      Oleh: {report.profile?.full_name || report.user?.full_name || 'Warga'}
-                    </Text>
-                    <Text className="font-sans text-[10px] font-bold text-indigo-500">Moderasi →</Text>
-                  </View>
-                </View>
-              </BentoCard>
-            </TouchableOpacity>
-          ))
-        )}
       </ScrollView>
     </View>
   );
