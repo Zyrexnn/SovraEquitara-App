@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, User, Map, FileText, Megaphone, MessageSquare } from 'lucide-react-native';
+import { Home, User, Map, FileText, Megaphone, MessageSquare, Sparkles } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
 
@@ -19,33 +19,34 @@ export default function AdminTabsLayout() {
           backgroundColor: isDark ? '#0c0a09' : '#ffffff',
           borderTopWidth: 1,
           borderTopColor: isDark ? '#292524' : '#e7e5e4',
-          elevation: 8,
+          elevation: 6,
           shadowColor: '#000000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.4 : 0.03,
-          shadowRadius: 12,
-          height: 72,
-          paddingBottom: 14,
-          paddingTop: 10,
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: isDark ? 0.35 : 0.02,
+          shadowRadius: 10,
+          height: 70,
+          paddingBottom: 12,
+          paddingTop: 8,
+          paddingHorizontal: 4, // Horizontal padding for breathing room
         },
         tabBarActiveTintColor: isDark ? '#ffffff' : '#000000',
         tabBarInactiveTintColor: '#78716c',
         tabBarLabelStyle: {
           fontFamily: 'Inter',
-          fontSize: 8,
+          fontSize: 7.5, // Reduced font size to fit all 7 tabs beautifully
           fontWeight: '900',
-          letterSpacing: 0.4,
-          marginTop: 4,
+          letterSpacing: 0.2,
+          marginTop: 3,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: 'Home', // Shortened from Dashboard to save massive space
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <Home color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <Home color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -55,8 +56,8 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Arsip',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <FileText color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <FileText color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -66,8 +67,19 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Peta',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <Map color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <Map color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: 'Chat AI', // New AI Chat tab screen in the exact middle!
+          tabBarIcon: ({ color, focused }) => (
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? (isDark ? 'bg-purple-100' : 'bg-purple-900') : 'bg-transparent'}`}>
+              <Sparkles color={focused ? (isDark ? '#000000' : '#ffffff') : '#a855f7'} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -77,8 +89,8 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Siaran',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <Megaphone color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <Megaphone color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -88,8 +100,8 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Bantuan',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <MessageSquare color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <MessageSquare color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
@@ -99,8 +111,8 @@ export default function AdminTabsLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, focused }) => (
-            <View className={`w-9 h-9 rounded-xl items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
-              <User color={focused ? activeIconColor : inactiveIconColor} size={18} strokeWidth={focused ? 2.5 : 2} />
+            <View className={`w-8 h-8 rounded-lg items-center justify-center ${focused ? activeBgClass : 'bg-transparent'}`}>
+              <User color={focused ? activeIconColor : inactiveIconColor} size={15} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
         }}
