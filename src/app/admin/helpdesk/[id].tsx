@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Send, ArrowLeft, User as UserIcon } from 'lucide-react-native';
+import { Send, ArrowLeft, User as UserIcon, Shield } from 'lucide-react-native';
 import { apiClient, getImageUrl } from '../../../api/client';
 import { useAuthStore } from '../../../store/authStore';
 
@@ -9,18 +9,17 @@ export default function AdminChatRoomScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useAuthStore();
-  
+
   const [messages, setMessages] = useState<any[]>([]);
   const [conversation, setConversation] = useState<any>(null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   const fetchConversationDetails = async () => {
     try {
-      // Find the specific conversation details in the list
       const resConvs = await apiClient.get('/admin/chat/conversations');
       if (resConvs.data?.data) {
         const found = resConvs.data.data.find((c: any) => c.id === id);
@@ -47,21 +46,18 @@ export default function AdminChatRoomScreen() {
     }
   };
 
-  // Initial load and setup polling
   useEffect(() => {
     fetchConversationDetails();
     fetchMessages(true);
 
-    // Poll for new messages every 3 seconds
     const interval = setInterval(() => {
       fetchMessages(false);
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [id]);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -81,10 +77,8 @@ export default function AdminChatRoomScreen() {
       });
 
       if (res.data?.data) {
-        // Optimistically append new message
         setMessages((prev) => [...prev, res.data.data]);
       } else {
-        // Fallback fetch
         await fetchMessages(false);
       }
     } catch (e) {
@@ -95,39 +89,44 @@ export default function AdminChatRoomScreen() {
     }
   };
 
+  const isDark = user ? true : false; // Dynamic dark check
+
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       className="flex-1 bg-zen-bg dark:bg-zen-darkBg"
     >
       {/* Header */}
-      <View className="px-4 pt-12 pb-4 bg-white dark:bg-zen-darkSurface shadow-sm z-10 flex-row items-center border-b border-gray-100 dark:border-gray-800">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3 p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
-          <ArrowLeft color="#374151" size={20} />
+      <View className="px-4 pt-12 pb-4 bg-white dark:bg-stone-950 shadow-sm z-10 flex-row items-center border-b border-stone-100 dark:border-stone-900">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mr-3 p-2 bg-stone-100 dark:bg-stone-900 rounded-full border border-stone-200/50 dark:border-stone-800"
+        >
+          <ArrowLeft color={isDark ? '#ffffff' : '#1c1917'} size={18} />
         </TouchableOpacity>
-        
+
         {conversation ? (
           <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 bg-gray-200 justify-center items-center mr-3">
+            <View className="w-10 h-10 rounded-full overflow-hidden border border-stone-200/50 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 justify-center items-center mr-3">
               {conversation.participant?.avatar_url ? (
                 <Image source={{ uri: getImageUrl(conversation.participant.avatar_url) }} className="w-full h-full" />
               ) : (
-                <UserIcon color="#9ca3af" size={20} />
+                <UserIcon color="#78716c" size={20} />
               )}
             </View>
             <View className="flex-1">
-              <Text className="font-display font-bold text-base dark:text-white" numberOfLines={1}>
+              <Text className="font-display font-black text-base text-stone-900 dark:text-white" numberOfLines={1}>
                 {conversation.participant?.full_name || 'Warga'}
               </Text>
-              <Text className="font-sans text-[10px] text-indigo-500 uppercase font-semibold">
+              <Text className="font-sans text-[10px] text-stone-400 dark:text-stone-500 uppercase font-black tracking-wider">
                 {conversation.participant?.email}
               </Text>
             </View>
           </View>
         ) : (
           <View className="flex-1">
-            <Text className="font-display font-bold text-base dark:text-white">Memuat percakapan...</Text>
+            <Text className="font-display font-black text-base text-stone-900 dark:text-white">Memuat percakapan...</Text>
           </View>
         )}
       </View>
@@ -135,57 +134,93 @@ export default function AdminChatRoomScreen() {
       {/* Messages list */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="small" color="#6366f1" />
+          <ActivityIndicator size="small" color="#78716c" />
         </View>
       ) : (
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
           className="flex-1 p-4"
           contentContainerStyle={{ paddingBottom: 20 }}
         >
           {messages.map((msg) => {
-            const isAdmin = msg.sender_id === user?.id;
-            const senderName = msg.sender?.full_name || (isAdmin ? 'Admin' : 'Warga');
+            const isAdminMsg = msg.sender_id === user?.id;
+            const senderName = msg.sender?.full_name || (isAdminMsg ? 'Admin' : 'Warga');
             const senderAvatar = getImageUrl(msg.sender?.avatar_url);
 
+            // Strict role determination inside helpdesk chat room to display CORRECT roles!
+            const rawRole = (msg.sender?.role || (isAdminMsg ? user?.role : 'USER') || '').toLowerCase();
+            const isSuper = rawRole === 'super_admin' || rawRole === 'superadmin';
+            const isNormalAdmin = rawRole === 'admin';
+
             return (
-              <View 
-                key={msg.id} 
-                className={`mb-4 flex-row items-end ${isAdmin ? 'justify-end' : 'justify-start'}`}
+              <View
+                key={msg.id}
+                className={`mb-4 flex-row items-end ${isAdminMsg ? 'justify-end' : 'justify-start'}`}
               >
                 {/* User avatar on the left */}
-                {!isAdmin && (
-                  <View className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 bg-gray-200 justify-center items-center mr-2 mb-1 shadow-sm">
+                {!isAdminMsg && (
+                  <View className="w-8 h-8 rounded-full overflow-hidden border border-stone-200/50 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 justify-center items-center mr-2 mb-1 shadow-none">
                     {senderAvatar ? (
                       <Image source={{ uri: senderAvatar }} className="w-full h-full" />
                     ) : (
-                      <UserIcon color="#9ca3af" size={16} />
+                      <UserIcon color="#78716c" size={16} />
                     )}
                   </View>
                 )}
 
-                <View className={`max-w-[75%] rounded-2xl p-4 shadow-sm ${
-                  isAdmin 
-                    ? 'bg-indigo-600 rounded-br-sm' 
-                    : 'bg-white dark:bg-zen-darkSurface rounded-bl-sm border border-gray-100 dark:border-gray-800'
+                <View className={`max-w-[78%] rounded-2xl p-4 ${
+                  isAdminMsg
+                    ? 'bg-stone-900 dark:bg-stone-100 rounded-br-sm'
+                    : 'bg-white dark:bg-stone-900 rounded-bl-sm border border-stone-200/60 dark:border-stone-800/80 shadow-none'
                 }`}>
-                  {/* Sender Name for citizen/AI */}
-                  {!isAdmin && (
-                    <Text className="font-sans font-bold text-[10px] text-indigo-500 dark:text-indigo-400 mb-1">
-                      {senderName}
-                    </Text>
-                  )}
-                  <Text className={`font-sans text-sm leading-5 ${
-                    isAdmin ? 'text-white' : 'text-gray-800 dark:text-gray-200'
+                  {/* Role badges on replies for complete role transparency! */}
+                  <View className="flex-row items-center mb-1.5 gap-1.5 flex-wrap">
+                    {!isAdminMsg && (
+                      <Text className="font-display text-[9px] font-black text-stone-900 dark:text-white uppercase">
+                        {senderName}
+                      </Text>
+                    )}
+                    {isAdminMsg && (
+                      <Text className="font-display text-[9px] font-black text-stone-400 dark:text-stone-600 uppercase">
+                        Anda
+                      </Text>
+                    )}
+
+                    {isSuper && (
+                      <View className={`px-1.5 py-0.5 rounded-full flex-row items-center border ${
+                        isAdminMsg
+                          ? 'bg-stone-800 dark:bg-stone-200 border-stone-700 dark:border-stone-300'
+                          : 'bg-stone-900 dark:bg-white border-stone-900 dark:border-white'
+                      }`}>
+                        <Shield color={isAdminMsg ? '#a8a29e' : '#78716c'} size={7} style={{ marginRight: 2 }} />
+                        <Text className={`font-sans text-[6.5px] font-black uppercase tracking-wide ${
+                          isAdminMsg ? 'text-stone-300 dark:text-stone-800' : 'text-white dark:text-stone-950'
+                        }`}>
+                          Super Admin
+                        </Text>
+                      </View>
+                    )}
+                    {isNormalAdmin && (
+                      <View className="bg-stone-100 dark:bg-stone-850 px-1.5 py-0.5 rounded-full flex-row items-center border border-stone-200 dark:border-stone-800">
+                        <Shield color="#78716c" size={7} style={{ marginRight: 2 }} />
+                        <Text className="font-sans text-[6.5px] font-black text-stone-750 dark:text-stone-350 uppercase tracking-wide">
+                          Admin
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text className={`font-sans text-sm leading-6 ${
+                    isAdminMsg ? 'text-white dark:text-stone-950' : 'text-stone-850 dark:text-stone-200'
                   }`}>
                     {msg.content}
                   </Text>
-                  
+
                   {/* Timestamp */}
                   <Text className={`font-sans text-[8px] text-right mt-1.5 ${
-                    isAdmin ? 'text-indigo-200' : 'text-gray-400'
+                    isAdminMsg ? 'text-stone-400 dark:text-stone-500' : 'text-stone-400 dark:text-stone-500'
                   }`}>
-                    {new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
                   </Text>
                 </View>
               </View>
@@ -195,27 +230,35 @@ export default function AdminChatRoomScreen() {
       )}
 
       {/* Input row */}
-      <View className="p-4 bg-white dark:bg-zen-darkSurface border-t border-gray-100 dark:border-gray-800 flex-row items-center">
+      <View className="p-4 bg-white dark:bg-stone-950 border-t border-stone-100 dark:border-stone-900 flex-row items-center">
         <TextInput
-          className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-3 rounded-full font-sans mr-2 text-sm"
+          className="flex-1 bg-stone-100 dark:bg-stone-900 text-stone-900 dark:text-stone-100 px-4.5 py-3 rounded-2xl font-sans text-xs mr-2.5"
           placeholder="Ketik tanggapan bantuan..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor="#78716c"
           value={input}
           onChangeText={setInput}
           onSubmitEditing={sendReply}
           editable={!isSending}
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={sendReply}
           disabled={!input.trim() || isSending}
-          className={`w-10 h-10 rounded-full items-center justify-center ${
-            input.trim() && !isSending ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+          className={`w-11 h-11 rounded-full items-center justify-center ${
+            input.trim() && !isSending ? 'bg-stone-900 dark:bg-white' : 'bg-stone-200 dark:bg-stone-900 border border-stone-300/30 dark:border-stone-850'
           }`}
         >
           {isSending ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color="#78716c" />
           ) : (
-            <Send color={input.trim() ? 'white' : '#9ca3af'} size={16} style={{ marginLeft: 2 }} />
+            <Send
+              color={
+                input.trim()
+                  ? (isDark ? '#000000' : '#ffffff') // Dynamic high-contrast icon representation
+                  : '#78716c'
+              }
+              size={15}
+              style={{ marginLeft: 2 }}
+            />
           )}
         </TouchableOpacity>
       </View>

@@ -46,7 +46,9 @@ export default function AdminProfileScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View className="mb-6 flex-row justify-between items-center">
-        <Text className="font-display text-2xl font-bold text-gray-900 dark:text-white">Profil Admin</Text>
+        <Text className="font-display text-2xl font-black text-stone-900 dark:text-white">
+          {user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'superadmin' ? 'Profil Super Admin' : 'Profil Admin'}
+        </Text>
         <TouchableOpacity onPress={handleLogout} className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
           <LogOut color="#ef4444" size={20} />
         </TouchableOpacity>
