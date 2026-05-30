@@ -16,6 +16,7 @@ import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import { apiClient, getImageUrl } from '../../api/client';
 import { BentoCard } from '../../components/ui/BentoCard';
+import { AppLogo } from '../../components/ui/AppLogo';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { 
   ArrowLeft, 
@@ -259,9 +260,7 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
             </TouchableOpacity>
           )}
           <View className="flex-1">
-            <Text className="font-display text-lg font-black text-gray-900 dark:text-white" numberOfLines={1}>
-              Konsol <Text className="text-indigo-500 dark:text-indigo-400">Super</Text>
-            </Text>
+            <AppLogo width={120} height={45} className="self-start -ml-2" />
             <Text className="font-sans text-[9px] text-stone-400 dark:text-stone-500 font-bold uppercase tracking-wider mt-0.5">
               Super Admin Console
             </Text>
