@@ -64,58 +64,145 @@ export default function AdminAIAssistantScreen() {
 
   // Parse message content to extract [DETAIL_BTN:uuid] into interactive buttons
   const renderMessageContent = (content: string, isAdmin: boolean) => {
-    const regex = /\[DETAIL_BTN:([0-9a-fA-F\-]{36})\]/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(content)) !== null) {
-      const index = match.index;
-      if (index > lastIndex) {
-        parts.push({ type: 'text', value: content.substring(lastIndex, index) });
-      }
-      parts.push({ type: 'button', value: match[1] });
-      lastIndex = regex.lastIndex;
+    if (isAdmin) {
+      return (
+        <Text
+          className="font-sans text-sm leading-6 text-white"
+        >
+          {content}
+        </Text>
+      );
     }
 
-    if (lastIndex < content.length) {
-      parts.push({ type: 'text', value: content.substring(lastIndex) });
-    }
+    // 1. Normalize raw UUIDs not already inside [DETAIL_BTN:...] to [DETAIL_BTN:UUID]
+    let parsedContent = content.replace(/(?:\[DETAIL_BTN:)?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\]?/g, (match, uuid) => {
+      return `[DETAIL_BTN:${uuid}]`;
+    });
 
-    if (parts.length === 0) {
-      parts.push({ type: 'text', value: content });
-    }
+    // 2. Parse sequential tokens (Text, Report Button, Chart)
+    const tokenRegex = /(\[DETAIL_BTN:[0-9a-fA-F\-]{36}\]|\[CHART:(?:bar|line|pie):[^\]]+\])/g;
+    const tokens = parsedContent.split(tokenRegex);
 
     return (
-      <View>
-        {parts.map((part, index) => {
-          if (part.type === 'text') {
+      <View className="w-full">
+        {tokens.map((token, idx) => {
+          if (!token) return null;
+
+          if (token.startsWith('[DETAIL_BTN:')) {
+            const uuid = token.substring(12, 12 + 36);
             return (
-              <Text 
-                key={index}
-                className={`font-sans text-sm leading-6 ${
-                  isAdmin ? 'text-white' : 'text-gray-800 dark:text-gray-200'
-                }`}
+              <TouchableOpacity
+                key={idx}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/admin/report/${uuid}` as any)}
+                className="mt-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 py-3 px-4 rounded-xl flex-row items-center justify-between shadow-sm"
               >
-                {part.value}
-              </Text>
+                <View className="flex-row items-center flex-1 mr-2">
+                  <View className="w-6 h-6 rounded-full items-center justify-center mr-2 bg-indigo-100 dark:bg-indigo-900/30">
+                    <Sparkles color="#6366f1" size={12} />
+                  </View>
+                  <Text className="font-display font-bold text-xs text-indigo-750 dark:text-indigo-400" numberOfLines={1}>
+                    Tinjau Laporan ({uuid.substring(0, 8)}...)
+                  </Text>
+                </View>
+                <Text className="font-sans font-bold text-xs text-indigo-500">→</Text>
+              </TouchableOpacity>
+            );
+          } else if (token.startsWith('[CHART:')) {
+            const chartMatch = /\[CHART:(bar|line|pie):([^\]]+)\]/.exec(token);
+            if (!chartMatch) return null;
+            const type = chartMatch[1];
+            const dataStr = chartMatch[2];
+            const items = dataStr.split('|').map(item => {
+              const parts = item.split(',');
+              return { label: (parts[0] || '').trim(), value: parseFloat(parts[1]) || 0 };
+            });
+            const maxVal = Math.max(...items.map(i => i.value), 1);
+            const totalVal = items.reduce((acc, curr) => acc + curr.value, 0) || 1;
+
+            return (
+              <View 
+                key={idx} 
+                className="mt-4 mb-4 p-4 rounded-3xl bg-stone-50 dark:bg-stone-900/40 border border-stone-200/50 dark:border-stone-800 shadow-none flex-col w-full"
+              >
+                <View className="flex-row items-center justify-between border-b border-stone-200/30 dark:border-stone-850 pb-2 mb-3">
+                  <Text className="text-[10px] font-black uppercase tracking-wider text-stone-400">
+                    Analisis Grafik {type.toUpperCase()}
+                  </Text>
+                  <View className="bg-blue-50 dark:bg-blue-950/20 px-2 py-0.5 rounded-full border border-blue-100/40 dark:border-blue-900/30">
+                    <Text className="text-[8px] font-black text-blue-550 dark:text-blue-400 uppercase">AI Chart</Text>
+                  </View>
+                </View>
+
+                {type === 'bar' && (
+                  <View className="gap-2.5">
+                    {items.map((item, i) => {
+                      const pct = (item.value / maxVal) * 100;
+                      return (
+                        <View key={i} className="flex-col">
+                          <View className="flex-row items-center justify-between mb-1">
+                            <Text className="font-sans font-bold text-xs text-stone-700 dark:text-stone-300">{item.label}</Text>
+                            <Text className="font-display font-black text-xs text-stone-850 dark:text-stone-200">{item.value}</Text>
+                          </View>
+                          <View className="w-full h-2.5 bg-stone-200/50 dark:bg-stone-800 rounded-full overflow-hidden">
+                            <View className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+
+                {type === 'line' && (
+                  <View className="gap-2">
+                    {items.map((item, i) => {
+                      const pct = (item.value / maxVal) * 100;
+                      return (
+                        <View key={i} className="flex-row items-center justify-between h-7">
+                          <Text className="font-sans font-bold text-xs text-stone-600 dark:text-stone-400 w-24" numberOfLines={1}>
+                            {item.label}
+                          </Text>
+                          <View className="flex-1 h-0.5 bg-stone-200/40 dark:bg-stone-800 mx-3 justify-center relative">
+                            <View className="h-3 w-3 rounded-full bg-blue-500 border-2 border-white dark:border-stone-900 absolute" style={{ left: `${pct}%`, transform: [{ translateX: -6 }] }} />
+                          </View>
+                          <Text className="font-display font-black text-xs text-stone-850 dark:text-stone-200 w-6 text-right">
+                            {item.value}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+
+                {type === 'pie' && (
+                  <View className="flex-col gap-3">
+                    <View className="flex-row flex-wrap gap-2 justify-center">
+                      {items.map((item, i) => {
+                        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+                        const color = colors[i % colors.length];
+                        const share = ((item.value / totalVal) * 100).toFixed(0);
+                        return (
+                          <View key={i} className="flex-row items-center gap-1.5 px-2 py-1 bg-stone-100/50 dark:bg-stone-800/45 rounded-xl border border-stone-200/30 dark:border-stone-800/35">
+                            <View className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                            <Text className="font-sans font-bold text-[10px] text-stone-600 dark:text-stone-400">
+                              {item.label} ({share}%)
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+              </View>
             );
           } else {
             return (
-              <TouchableOpacity
-                key={index}
-                activeOpacity={0.8}
-                onPress={() => router.push(`/admin/report/${part.value}` as any)}
-                className="mt-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 py-3 px-4 rounded-xl flex-row items-center justify-between shadow-sm"
+              <Text
+                key={idx}
+                className="font-sans text-sm leading-6 text-stone-850 dark:text-stone-200"
               >
-                <View className="flex-row items-center">
-                  <FileText color="#6366f1" size={16} className="mr-2" />
-                  <Text className="font-sans font-bold text-xs text-indigo-600 dark:text-indigo-400">
-                    Tinjau Laporan Aduan
-                  </Text>
-                </View>
-                <Text className="font-sans font-bold text-indigo-500 text-xs">→</Text>
-              </TouchableOpacity>
+                {token}
+              </Text>
             );
           }
         })}
