@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Send, ArrowLeft, Shield, Sparkles } from 'lucide-react-native';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
+import { useColorScheme } from 'nativewind';
 
 export default function SuperAdminAIScreen() {
   const router = useRouter();
@@ -139,7 +140,8 @@ export default function SuperAdminAIScreen() {
     }, 150);
   }, [messages]);
 
-  const isDark = user ? true : false; // Safe dynamic theme check wrapper fallback
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   return (
     <KeyboardAvoidingView

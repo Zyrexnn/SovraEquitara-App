@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Send, ArrowLeft, User as UserIcon, Shield } from 'lucide-react-native';
 import { apiClient, getImageUrl } from '../../../api/client';
 import { useAuthStore } from '../../../store/authStore';
+import { useColorScheme } from 'nativewind';
 
 export default function AdminChatRoomScreen() {
   const { id } = useLocalSearchParams();
@@ -89,7 +90,8 @@ export default function AdminChatRoomScreen() {
     }
   };
 
-  const isDark = user ? true : false; // Dynamic dark check
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   return (
     <KeyboardAvoidingView

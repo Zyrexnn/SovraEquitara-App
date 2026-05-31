@@ -4,6 +4,7 @@ import { Send, Sparkles, Shield } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
+import { useColorScheme } from 'nativewind';
 
 export default function AdminAIScreenTab() {
   const router = useRouter();
@@ -146,7 +147,8 @@ export default function AdminAIScreenTab() {
     }, 150);
   }, [messages]);
 
-  const isDark = user ? true : false;
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const isSuperAdmin = user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'superadmin';
 
   return (

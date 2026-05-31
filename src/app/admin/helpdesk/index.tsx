@@ -5,6 +5,7 @@ import { apiClient, getImageUrl } from '../../../api/client';
 import { BentoCard } from '../../../components/ui/BentoCard';
 import { ArrowLeft, Search, MessageSquare, User as UserIcon } from 'lucide-react-native';
 import { useAuthStore } from '../../../store/authStore';
+import { useColorScheme } from 'nativewind';
 
 export default function AdminHelpdeskInboxScreen() {
   const router = useRouter();
@@ -62,7 +63,8 @@ export default function AdminHelpdeskInboxScreen() {
     }
   };
 
-  const isDark = user ? true : false; // Safe dark theme configuration representation
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   return (
     <View className="flex-1 bg-zen-bg dark:bg-zen-darkBg">

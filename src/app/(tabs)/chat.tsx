@@ -3,6 +3,7 @@ import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingVi
 import { Send, User as UserIcon, Shield, MessageSquare } from 'lucide-react-native';
 import { apiClient, getImageUrl } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
+import { useColorScheme } from 'nativewind';
 
 export default function ChatScreen() {
   const { user } = useAuthStore();
@@ -107,7 +108,8 @@ export default function ChatScreen() {
     }, 150);
   }, [aiMessages, adminMessages, chatMode]);
 
-  const isDark = useAuthStore.getState().user ? true : false; // Safe dynamic theme check wrapper fallback
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   // Better use local state or direct styling where possible for theme safety
 
   return (
