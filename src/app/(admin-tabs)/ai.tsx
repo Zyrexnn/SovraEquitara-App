@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator } from 'react-native';
-import { Send, Sparkles, Shield } from 'lucide-react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator, Modal } from 'react-native';
+import { Send, Sparkles, Shield, History, Trash2, Plus } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
@@ -177,6 +177,80 @@ export default function AdminAIScreenTab() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Threads History States
+  const [threads, setThreads] = useState<any[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const loadThreads = async () => {
+    try {
+      const response = await apiClient.get('/admin/ai-assistant/threads');
+      setThreads(response.data?.data || []);
+    } catch (err) {
+      console.log('Error loading threads:', err);
+    }
+  };
+
+  const selectThread = async (id: string) => {
+    setActiveThreadId(id);
+    setShowHistoryModal(false);
+    setIsLoading(true);
+    try {
+      const response = await apiClient.get(`/admin/ai-assistant/threads/${id}`);
+      const fetchedMessages = response.data?.data || [];
+      if (fetchedMessages.length === 0) {
+        setMessages([
+          {
+            id: '1',
+            text: `Halo ${user?.full_name || 'Admin'}! Saya adalah Asisten AI Sistem SovraEquitara. Ada yang bisa saya bantu analisis atau jelaskan terkait laporan aduan warga, data moderasi, atau penugasan staf hari ini?`,
+            sender: 'ai'
+          }
+        ]);
+      } else {
+        setMessages(fetchedMessages.map((m: any) => ({
+          id: m.id,
+          text: m.content,
+          sender: m.role === 'user' ? 'user' : 'ai'
+        })));
+      }
+    } catch (err) {
+      console.log('Error fetching thread messages:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteThread = async (id: string) => {
+    try {
+      await apiClient.delete(`/admin/ai-assistant/threads/${id}`);
+      if (activeThreadId === id) {
+        setActiveThreadId(null);
+        setMessages([
+          {
+            id: '1',
+            text: `Halo ${user?.full_name || 'Admin'}! Saya adalah Asisten AI Sistem SovraEquitara. Ada yang bisa saya bantu analisis atau jelaskan terkait laporan aduan warga, data moderasi, atau penugasan staf hari ini?`,
+            sender: 'ai'
+          }
+        ]);
+      }
+      loadThreads();
+    } catch (err) {
+      console.log('Error deleting thread:', err);
+    }
+  };
+
+  const startNewChat = () => {
+    setActiveThreadId(null);
+    setMessages([
+      {
+        id: '1',
+        text: `Halo ${user?.full_name || 'Admin'}! Saya adalah Asisten AI Sistem SovraEquitara. Ada yang bisa saya bantu analisis atau jelaskan terkait laporan aduan warga, data moderasi, atau penugasan staf hari ini?`,
+        sender: 'ai'
+      }
+    ]);
+    setShowHistoryModal(false);
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -191,11 +265,21 @@ export default function AdminAIScreenTab() {
     try {
       const response = await apiClient.post('/admin/ai-assistant', {
         query: userMessage,
-        model: aiEngine
+        model: aiEngine,
+        thread_id: activeThreadId
       });
+      
+      const responseText = response.data?.response || response.data?.answer || 'Maaf, saya tidak mengerti.';
+      const newThreadId = response.data?.thread_id;
+      
+      if (newThreadId && !activeThreadId) {
+        setActiveThreadId(newThreadId);
+        loadThreads();
+      }
+
       setMessages([...newMessages, {
         id: (Date.now() + 1).toString(),
-        text: response.data?.response || response.data?.answer || 'Maaf, saya tidak mengerti.',
+        text: responseText,
         sender: 'ai'
       }]);
     } catch (e: any) {
@@ -208,6 +292,10 @@ export default function AdminAIScreenTab() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadThreads();
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -241,6 +329,17 @@ export default function AdminAIScreenTab() {
             </Text>
           </View>
         </View>
+
+        {/* History Toggle Trigger */}
+        <TouchableOpacity
+          onPress={() => {
+            loadThreads();
+            setShowHistoryModal(true);
+          }}
+          className="p-2.5 bg-stone-100 dark:bg-stone-900 rounded-full mr-2 border border-stone-200/50 dark:border-stone-850"
+        >
+          <History color={isDark ? '#a855f7' : '#7c3aed'} size={16} />
+        </TouchableOpacity>
 
         {/* Dynamic authentic role badge in header */}
         <View className="bg-stone-900 dark:bg-white px-2.5 py-1 rounded-full flex-row items-center border border-stone-900 dark:border-white">
@@ -285,7 +384,7 @@ export default function AdminAIScreenTab() {
             <Text className={`font-sans text-[8px] mt-1.5 ${
               msg.sender === 'user'
                 ? (isSuperAdmin ? 'text-purple-200 self-end' : 'text-stone-400 dark:text-stone-600 self-end')
-                : 'text-stone-400 dark:text-stone-500'
+                : 'text-stone-400 dark:text-stone-555'
             }`}>
               {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
             </Text>
@@ -301,7 +400,7 @@ export default function AdminAIScreenTab() {
 
       {/* Model Selector Bar */}
       <View className="px-4 py-2 bg-stone-50 dark:bg-stone-900/40 border-t border-stone-100 dark:border-stone-900 flex-row items-center justify-between">
-        <Text className="font-sans text-[9px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+        <Text className="font-sans text-[9px] font-black text-stone-400 dark:text-stone-555 uppercase tracking-wider">
           Mesin AI:
         </Text>
         <View className="flex-row bg-stone-200/50 dark:bg-stone-850 p-0.5 rounded-lg border border-stone-200/30 dark:border-stone-800">
@@ -358,6 +457,89 @@ export default function AdminAIScreenTab() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* History Modal Overlay */}
+      <Modal
+        visible={showHistoryModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowHistoryModal(false)}
+      >
+        <View className="flex-1 justify-end bg-black/60">
+          <TouchableOpacity 
+            className="flex-1" 
+            activeOpacity={1} 
+            onPress={() => setShowHistoryModal(false)}
+          />
+          <View className="bg-white dark:bg-stone-900 rounded-t-[32px] p-6 max-h-[80%] border-t border-stone-200 dark:border-stone-800">
+            <View className="flex-row items-center justify-between pb-4 border-b border-stone-100 dark:border-stone-800">
+              <Text className="font-display font-black text-lg text-stone-900 dark:text-white">
+                Riwayat Obrolan
+              </Text>
+              
+              <TouchableOpacity
+                onPress={startNewChat}
+                className="flex-row items-center gap-1 bg-blue-500 py-1.5 px-3 rounded-xl shadow-sm"
+              >
+                <Plus color="white" size={12} />
+                <Text className="font-sans font-bold text-xs text-white">Baru</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView className="mt-4 gap-2" showsVerticalScrollIndicator={false}>
+              {threads.length === 0 ? (
+                <Text className="text-center py-10 font-sans text-xs text-stone-400 font-bold">
+                  Belum ada sesi obrolan
+                </Text>
+              ) : (
+                threads.map(t => {
+                  const isActive = t.id === activeThreadId;
+                  return (
+                    <View
+                      key={t.id}
+                      className={`flex-row items-center justify-between p-3.5 rounded-2xl border ${
+                        isActive
+                          ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/40'
+                          : 'bg-stone-50 dark:bg-stone-850 border-stone-150 dark:border-stone-800'
+                      }`}
+                    >
+                      <TouchableOpacity
+                        onPress={() => selectThread(t.id)}
+                        className="flex-1 mr-2"
+                      >
+                        <Text 
+                          className={`font-sans text-xs font-bold ${
+                            isActive ? 'text-blue-600 dark:text-blue-400' : 'text-stone-750 dark:text-stone-300'
+                          }`}
+                          numberOfLines={1}
+                        >
+                          {t.title}
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        onPress={() => deleteThread(t.id)}
+                        className="p-1.5 bg-stone-100 dark:bg-stone-800 rounded-lg"
+                      >
+                        <Trash2 color="#ef4444" size={12} />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+            
+            <TouchableOpacity
+              onPress={() => setShowHistoryModal(false)}
+              className="mt-6 py-4 bg-stone-100 dark:bg-stone-800 rounded-2xl items-center"
+            >
+              <Text className="font-display font-black text-xs text-stone-700 dark:text-stone-300 tracking-wider">
+                TUTUP
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
