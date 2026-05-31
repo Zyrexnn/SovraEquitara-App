@@ -375,13 +375,25 @@ export default function DashboardScreen() {
                 >
                   <BentoCard className="p-5">
                     <View className="flex-row items-center justify-between mb-3">
-                      <View className="flex-1 mr-3">
-                        <Text className="font-sans text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
-                          {report.category?.name || 'Laporan Umum'}
-                        </Text>
-                        <Text className="font-display font-bold text-gray-900 dark:text-white text-sm" numberOfLines={1}>
-                          {report.profile?.full_name || report.user?.full_name || 'Anonim'}
-                        </Text>
+                      <View className="flex-row items-center flex-1 mr-3">
+                        <View className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mr-2.5 overflow-hidden">
+                          {report.profile?.avatar_url || report.user?.avatar_url ? (
+                            <Image 
+                              source={{ uri: getImageUrl(report.profile?.avatar_url || report.user?.avatar_url) }} 
+                              className="w-full h-full" 
+                            />
+                          ) : (
+                            <UserIcon color={isDark ? "#A1A1AA" : "#787774"} size={14} />
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-sans text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">
+                            {report.category?.name || 'Laporan Umum'}
+                          </Text>
+                          <Text className="font-display font-bold text-gray-900 dark:text-white text-sm" numberOfLines={1}>
+                            {report.profile?.full_name || report.user?.full_name || 'Anonim'}
+                          </Text>
+                        </View>
                       </View>
                       <StatusBadge status={report.status} />
                     </View>
@@ -389,6 +401,14 @@ export default function DashboardScreen() {
                     <Text className="font-sans text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4" numberOfLines={2}>
                       {report.description}
                     </Text>
+
+                    {(report.image_urls?.[0] || report.image_url) ? (
+                      <Image 
+                        source={{ uri: getImageUrl(report.image_urls?.[0] || report.image_url) }}
+                        className="w-full h-44 rounded-2xl mb-4 bg-gray-100 dark:bg-zinc-800"
+                        resizeMode="cover"
+                      />
+                    ) : null}
 
                     <View className="flex-row items-center justify-between pt-3 border-t border-gray-100 dark:border-zinc-800">
                       <View className="flex-row items-center flex-1 mr-2">

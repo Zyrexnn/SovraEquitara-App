@@ -8,7 +8,7 @@ import { useColorScheme } from 'nativewind';
 import { apiClient, getImageUrl } from '../api/client';
 import { BentoCard } from '../components/ui/BentoCard';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import { ArrowLeft, MapPin, ThumbsUp, Search, X, Clock, Flame, MessageCircle } from 'lucide-react-native';
+import { ArrowLeft, MapPin, ThumbsUp, Search, X, Clock, Flame, MessageCircle, User as UserIcon } from 'lucide-react-native';
 
 type SortMode = 'recent' | 'votes' | 'comments';
 
@@ -192,13 +192,25 @@ export default function PublicFeedScreen() {
 
                   <View className="p-4">
                     <View className="flex-row justify-between items-start mb-2">
-                      <View className="flex-1 mr-2">
-                        <Text className="font-display text-base font-bold text-gray-900 dark:text-white" numberOfLines={1}>
-                          {report.category?.name || 'Laporan Umum'}
-                        </Text>
-                        <Text className="font-sans text-xs text-gray-500 dark:text-gray-400">
-                          Oleh {report.profile?.full_name || report.user?.full_name || 'Anonim'}
-                        </Text>
+                      <View className="flex-row items-center flex-1 mr-2">
+                        <View className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mr-2.5 overflow-hidden">
+                          {report.profile?.avatar_url || report.user?.avatar_url ? (
+                            <Image 
+                              source={{ uri: getImageUrl(report.profile?.avatar_url || report.user?.avatar_url) }} 
+                              className="w-full h-full" 
+                            />
+                          ) : (
+                            <UserIcon color={isDark ? "#A1A1AA" : "#787774"} size={14} />
+                          )}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-display text-base font-bold text-gray-900 dark:text-white" numberOfLines={1}>
+                            {report.category?.name || 'Laporan Umum'}
+                          </Text>
+                          <Text className="font-sans text-xs text-gray-500 dark:text-gray-400">
+                            Oleh {report.profile?.full_name || report.user?.full_name || 'Anonim'}
+                          </Text>
+                        </View>
                       </View>
                       <StatusBadge status={report.status} />
                     </View>

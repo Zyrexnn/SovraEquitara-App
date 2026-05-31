@@ -40,7 +40,8 @@ import {
   Bookmark,
   Megaphone,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  User as UserIcon
 } from 'lucide-react-native';
 
 // Indikator Titik Hijau Berkedip/Pulsing Native
@@ -679,9 +680,21 @@ export function SuperAdminDashboardView({ isStandalone = false }: SuperAdminDash
                           </Text>
                         </View>
                         <View className="flex-row justify-between items-center mt-1">
-                          <Text className="font-sans text-stone-400 dark:text-stone-500 text-[8px] flex-1 mr-1" numberOfLines={1}>
-                            Oleh: {report.profile?.full_name || report.user?.full_name || 'Warga'}
-                          </Text>
+                          <View className="flex-row items-center flex-1 mr-1">
+                            <View className="w-4 h-4 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mr-1 overflow-hidden">
+                              {report.profile?.avatar_url || report.user?.avatar_url ? (
+                                <Image 
+                                  source={{ uri: getImageUrl(report.profile?.avatar_url || report.user?.avatar_url) }} 
+                                  className="w-full h-full" 
+                                />
+                              ) : (
+                                <UserIcon color={isDark ? "#A1A1AA" : "#787774"} size={8} />
+                              )}
+                            </View>
+                            <Text className="font-sans text-stone-400 dark:text-stone-500 text-[8px] flex-1" numberOfLines={1}>
+                              Oleh: {report.profile?.full_name || report.user?.full_name || 'Warga'}
+                            </Text>
+                          </View>
                           <Text className="font-sans text-[8px] font-bold text-indigo-500">Moderasi →</Text>
                         </View>
                       </View>
